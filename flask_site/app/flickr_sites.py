@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import pymysql as mdb
 #import matplotlib.pyplot as plt
 #import json
 from sklearn.cluster import KMeans
@@ -34,3 +35,36 @@ def get_clusters_dbscan(photos):
             centroids.append(xy.mean(axis=0))
     print 'Estimated number of clusters: %d' % n_clusters_
     return centroids
+
+# get a heatmap of flickr photos 
+def get_heatmap_sql(db,init_loc,lim=0.01):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT lat,lng FROM flickr_yahoo_nyc WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
+        (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
+        cur.execute(cmd)
+        heatmap = cur.fetchall()
+    return heatmap
+
+# get timeline of flickr photos 
+def get_timemap_sql(db,init_loc,lim=0.005):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT Id,date_taken FROM flickr_yahoo_nyc WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
+        (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
+        cur.execute(cmd)
+        timemap = cur.fetchall()
+    return timemap
+
+# get precomputed centroids of flicker photos from heatmaps from sql
+def get_centroids_sql(db,init_loc,lim=0.01):
+    with db:
+        cur = db.cursor()
+        cmd = "SELECT lat,lng FROM flickr_clusters_nyc WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
+        (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
+        cur.execute(cmd)
+        centroids = cur.fetchall()
+    centroids = list(centroids)
+    return centroids
+
+

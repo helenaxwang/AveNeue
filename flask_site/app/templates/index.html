@@ -53,7 +53,7 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-          <a class="navbar-brand" href="#">Project name</a>
+          <a class="navbar-brand" href="#">AveNeue</a>
         </div>
         <div class="collapse navbar-collapse">
           <ul class="nav navbar-nav">
@@ -77,41 +77,56 @@
 
       <!-- Slider slider slider  -->    
     <!-- Why doesn't this work!!!! -->
+    <center>
     <div class="slider slider-horizontal" id="RC">
-        <div class="slider-track">
-            <div class="slider-selection" style="left: 0%; width: 18.4313725490196%;"></div>
-            <div class="slider-handle min-slider-handle" tabindex="0" style="left: 18.4313725490196%;"></div>
-            <div class="slider-handle max-slider-handle hide" tabindex="0" style="left: 0%;"></div>
-        </div>
-        <div class="tooltip tooltip-main top hide" style="left: 18.4313725490196%; margin-left: 0px;">
-            <div class="tooltip-arrow"></div>
-            <div class="tooltip-inner">47</div>
-        </div>
-        <div class="tooltip tooltip-min top hide">
-            <div class="tooltip-arrow"></div>
-            <div class="tooltip-inner"></div></div>
-            <div class="tooltip tooltip-max hide top" style="top: -30px;">
-                <div class="tooltip-arrow"></div>
-                <div class="tooltip-inner"></div>
+        <!-- <div class="col-md-4"> Less Touristy </div> -->
+        <!-- <div class="col-md-4"> -->
+
+            <div class="slider-track">
+                <div class="slider-selection" style="left: 0%; width: 18.4313725490196%;"></div>
+                <div class="slider-handle min-slider-handle" tabindex="0" style="left: 18.4313725490196%;"></div>
+                <div class="slider-handle max-slider-handle hide" tabindex="0" style="left: 0%;"></div>
             </div>
-        </div>
-        <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="RC" id="R" data-slider-tooltip="hide" data-slider-handle="square" style="display: none;" data="value: '47'">
+            <div class="tooltip tooltip-main top hide" style="left: 18.4313725490196%; margin-left: 0px;">
+                <div class="tooltip-arrow"></div>
+                <div class="tooltip-inner">47</div>
+            </div>
+            <div class="tooltip tooltip-min top hide">
+                <div class="tooltip-arrow"></div>
+                <div class="tooltip-inner"></div></div>
+                <div class="tooltip tooltip-max hide top" style="top: -30px;">
+                    <div class="tooltip-arrow"></div>
+                    <div class="tooltip-inner"></div>
+                </div>
+            </div>
+            <input type="text" class="span2" value="" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-value="128" data-slider-id="RC" id="R" data-slider-tooltip="hide" data-slider-handle="square" style="display: none;" data="value: '47'">
+        
+        <!-- </div> -->
+        <!-- <div class="col-md-4"> More Touristy </div> -->
+      <p> Touristiness Scale </p>
       </div>
+    </center>
     <!-- Slider end  -->
 
     <!-- Place holder for slider  -->
+    
     <center>
+    <br><br>
     <div class="input-group">
-        <p> Novelty : higher = more novel </p>
-        <input type="text" class="form-control" placeholder="0.5">
+        <input type="text" class="form-control" placeholder="Starting location">
     </div>
-    </center>
-
+    
     <!-- Go button  -->
     <br><br>
-    <div class="gobutton starter-template">
-          <button type="submit" class="btn btn-default"> Go! </button>
+    <div class="buttonbox">
+          <button id="submit" class="btn btn-default"> Go! </button>
     </div>
+
+    <div id="divbox">
+          
+    </div>
+
+    </center>
 
     <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
     <script src="static/js/bootstrap.min.js"></script>
@@ -129,10 +144,14 @@
     <!--<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
     <script>
         $(document).ready(function() {
-
+            
+            var clickfun = function() {
+                 window.location = "http://localhost:5000/map";
+            }
             // hide this for now, until we can make it work
-            var r = $('#RC').hide()
+            //var r = $('#RC').hide()
             // var r = $('#R').slider().data('slider');
+            var g = $('#submit').click(clickfun)
 
         })
     </script>
