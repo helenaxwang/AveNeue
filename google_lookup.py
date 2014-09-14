@@ -60,7 +60,7 @@ def get_google_direction_matrix(locations,origin=None):
     googleResponse = urllib.urlopen(complete_url)
     jsonResponse = json.loads(googleResponse.read())
 
-    pprint.pprint(jsonResponse)    
+    #pprint.pprint(jsonResponse)    
     
     return jsonResponse
 
@@ -87,6 +87,7 @@ def get_distance_matrix(rows):
     # convert into numpy matrices
     distance_value = np.asarray(distance_value)
     duration_value = np.asarray(duration_value)
+    #pdb.set_trace()
     # # image 
     # plt.imshow(distance_value, interpolation='nearest')
     # plt.imshow(duration_value, interpolation='nearest')
@@ -96,10 +97,8 @@ def get_distance_matrix(rows):
 
 if __name__ == '__main__':
 
-    test_tripomatic_location_lookup = False
-
     # test the get_google_address function by looking up addresses in tripomatic database
-    if test_tripomatic_location_lookup:
+    def test1():
         con = mdb.connect('localhost', 'root', '', 'insight')
         with con:
             cur = con.cursor(mdb.cursors.DictCursor)
@@ -122,24 +121,33 @@ if __name__ == '__main__':
                         pprint.pprint(result['geometry'])
                         pdb.set_trace()
 
-    # test google direction matrix API
-    init_loc = [40.74844,-73.985664]
-    # nearby_locs = [[ 40.75690913, -73.98618134], \
-    # [ 40.74845804, -73.98557143], [ 40.75274964, -73.97727833], [ 40.75061299, -73.99353062],\
-    # [ 40.75315722, -73.9821481 ], [ 40.7540401 , -73.98401502], [ 40.74050068, -73.98470645],\
-    # [ 40.7416182, -73.9893952], [ 40.7501 , -73.98791818]]
-    nearby_locs = [[ 40.75690913, -73.98618134], \
-    [ 40.74845804, -73.98557143], [ 40.75274964, -73.97727833], [ 40.75061299, -73.99353062]]
-    # assumes one hour at each location 
-    duration_at_each_location = np.ones(len(nearby_locs))
-    # time score is obtained from flickr photo density 
-    time_score = np.random.rand(len(nearby_locs))
+    def test2():
+        import time 
+        # test google direction matrix API
+        init_loc = [40.74844,-73.985664]
+        # nearby_locs = [[ 40.75690913, -73.98618134], \
+        # [ 40.74845804, -73.98557143], [ 40.75274964, -73.97727833], [ 40.75061299, -73.99353062],\
+        # [ 40.75315722, -73.9821481 ], [ 40.7540401 , -73.98401502], [ 40.74050068, -73.98470645],\
+        # [ 40.7416182, -73.9893952], [ 40.7501 , -73.98791818]]
+        nearby_locs = [[ 40.75690913, -73.98618134], \
+        [ 40.74845804, -73.98557143], [ 40.75274964, -73.97727833], [ 40.75061299, -73.99353062],\
+        [ 40.75315722, -73.9821481 ], [ 40.7540401 , -73.98401502], [ 40.74050068, -73.98470645],\
+        [ 40.7416182, -73.9893952]]
+        # assumes one hour at each location 
+        duration_at_each_location = np.ones(len(nearby_locs))
+        # time score is obtained from flickr photo density 
+        time_score = np.random.rand(len(nearby_locs))
 
-    # TODO: NEED TO DO SOMETHING WITH DURATION!!!!
-    # Also: do something with initial location - right now assumes first point is initial point 
-    jsonResponse = get_google_direction_matrix(nearby_locs)
-    rows = jsonResponse['rows']
-    distance_matrix,duration_matrix = get_distance_matrix(rows)
-    path = find_best_path(distance_matrix,duration_matrix,loc_duration=duration_at_each_location,loc_score=time_score)
-    print path
-    #pdb.set_trace()
+        # TODO: NEED TO DO SOMETHING WITH DURATION!!!!
+        # Also: do something with initial location - right now assumes first point is initial point 
+        jsonResponse = get_google_direction_matrix(nearby_locs,init_loc)
+        rows = jsonResponse['rows']
+        distance_matrix,duration_matrix = get_distance_matrix(rows)
+
+        t0 = time.time()
+        path = find_best_path(distance_matrix,duration_matrix,8,loc_duration=[1,1,1,1,1,1,1,1,1])
+        print path
+        print time.time()-t0
+        #pdb.set_trace()
+
+    test2()
