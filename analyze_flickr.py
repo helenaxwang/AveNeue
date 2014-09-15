@@ -75,6 +75,21 @@ with db:
     attractions = cur.fetchall()
 attractions = pd.DataFrame(attractions)
 
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+import pymysql as mdb
+
+# load from data base 
+db = mdb.connect('localhost', 'root', '', 'insight')
+with db:
+    cur = db.cursor(mdb.cursors.DictCursor)
+    cmd = "SELECT * FROM flickr_yahoo_nyc "
+    cur.execute(cmd)
+    photos = cur.fetchall()
+# convert into a data frame 
+photos2= pd.DataFrame(photos)
+photos2.index = pd.to_datetime(photos2['date_taken'])
+
 #------------------
 # parse date time 
 from datetime import datetime
@@ -95,16 +110,25 @@ photos2.index = pd.to_datetime(photos2['date_taken'])
 photos2 = photos2.ix['2009':'2015'] #802295
 #photos2 = photos2.set_index('date_taken')
 
+#------------------
+
 # just work with the series
-date_series = pd.Series(np.ones(photos2.shape[0]), index =photos2['date_taken'])
+# date_series = pd.Series(np.ones(photos2.shape[0]), index =photos2['date_taken'])
 # group by hours 
 #year_hour_means = date_series2.groupby(lambda x: (x.year, x.hour)).count()
 #year_hour_means.index = pd.MultiIndex.from_tuples(year_hour_means.index, names=['year', 'hour'])
-hour_means = date_series2.groupby(lambda x: x.hour).count()
+# hour_means = date_series2.groupby(lambda x: x.hour).count()
 
-# get the hour mean 
+# http://stackoverflow.com/questions/24479577/pandas-timestamp-index-rounding-to-the-nearest-5th-minute
+nsround = 60*60*1000000000   # 60 minutes in nanoseconds
+photos2.index = pd.DatetimeIndex(((photos2.index.astype(np.int64) // nsround + 1 ) * nsround))
+photos2.date_taken = pd.DatetimeIndex(((photos2.date_taken.astype(np.int64) // nsround + 1 ) * nsround))
+photos2 = photos2.drop_duplicates(['user_id','date_taken'])
+
+# get the hour mean
+# http://stackoverflow.com/questions/16967165/getting-the-average-of-a-certain-hour-on-weekdays-over-several-years-in-a-pandas 
 def get_hour_mean(photo_df, loc,radius=0.005,normalize=True):
-    idx = np.sqrt((photo_df['lat']-loc[0])**2 + (photo_df['lng']-loc[1])**2) < radius
+    idx = np.sqrt((photo_df['Lat']-loc[0])**2 + (photo_df['Lng']-loc[1])**2) < radius
     hour_mean = photo_df.user_id[idx].groupby(lambda x: x.hour).count()
     if normalize:
         hour_mean = hour_mean / float(photo_df.user_id[idx].count())
@@ -114,11 +138,13 @@ def get_hour_mean(photo_df, loc,radius=0.005,normalize=True):
 hour_all_normalized = photos2.user_id.groupby(lambda x: x.hour).count()/photos2.user_id.count()
 hour_all = photos2.user_id.groupby(lambda x: x.hour).count()
 
+#temp = photos2.resample('10min')
+
 # now findout hour means for different locations 
 #init_loc1 = (40.74844,-73.985664) # empire state building, latitude/longitude
 #init_loc1 = (40.752726,-73.977229) # Grand Central
 init_loc1 = (40.7359464,-73.9889084) # union square
-init_loc2 = (40.758895, -73.985131) # time square
+init_loc2 = (40.758895, -73.985131)  # time square
 init_loc3 = (40.7307465,-73.9976182) # washington square park 
 init_loc4 = (40.7176379,-73.9599521) # williamsburg
 init_loc5 = (40.7115551,-73.9531715) # mcdougal street 
@@ -129,10 +155,10 @@ allLocNames = ['Union Square', 'Time Square', 'Washington Square Park', 'William
 fig = plt.figure(figsize=(6,4))
 ax = fig.add_subplot(111)
 colors = ['b','r','g','m','k']
-locidx = range(0,4)#range(5,6)#range(3)
-for i,loc in zip(locidx,allLocs[0:4]):
+locidx = range(0,5)#range(5,6)#range(3)
+for i,loc in zip(locidx,allLocs[0:5]):
     #fig.suptitle(allLocNames[i], fontsize=14, fontweight='bold')
-    hour_loc = get_hour_mean(photos2,loc,normalize=False)/hour_all
+    hour_loc = get_hour_mean(photos2,loc,normalize=True)/hour_all_normalized
     plt.plot(xrange(24),hour_loc,colors[i],linewidth=2, label=allLocNames[i])
     plt.xlim([0,23])
     #plt.ylim([0,3])

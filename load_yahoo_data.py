@@ -70,7 +70,7 @@ def insert_loc_sql(photos,init=True):
         if init:
             cur.execute("DROP TABLE IF EXISTS flickr_yahoo_nyc")
             cur.execute("CREATE TABLE flickr_yahoo_nyc(Id VARCHAR(25) PRIMARY KEY, Lat FLOAT, Lng FLOAT, accuracy INT, \
-                user_id VARCHAR(25), user_name VARCHAR(500), date_taken VARCHAR(25), date_uploaded VARCHAR(25), \
+                user_id VARCHAR(25), user_name VARCHAR(500), date_taken DATETIME, date_uploaded VARCHAR(25), \
                 device VARCHAR(100), video_marker INT)")
         for photo in photos:
             cmd = "INSERT INTO flickr_yahoo_nyc (Id, Lat, Lng, accuracy,user_id,user_name,\
@@ -115,20 +115,24 @@ if __name__ == '__main__':
     "yfcc100m_dataset-8.bz2", "yfcc100m_dataset-9.bz2"]
 
     init = True
+    load_from_rawfile = False
+
     for file_name in file_names:
         print file_name
         # get file name 
         full_file_name = os.path.join(flickr_yahoo_path,file_name)
 
-        # load photo list 
-        #photo_list = read_into_json(full_file_name,lat_bound_nyc,lng_bound_nyc)
-
-        # save into json - specify json file name 
+        # specify json file name 
         (json_file_name,ext) = os.path.splitext(file_name)
         json_file_name = json_file_name + '_nyc.json'
 
-        #write_json(photo_list, os.path.join(flickr_yahoo_path,json_file_name))
-        photo_list = load_json(os.path.join(flickr_yahoo_path,json_file_name))
+        if load_from_rawfile:
+            # load photo list 
+            photo_list = read_into_json(full_file_name,lat_bound_nyc,lng_bound_nyc)
+            # save into json
+            write_json(photo_list, os.path.join(flickr_yahoo_path,json_file_name))
+        else:
+            photo_list = load_json(os.path.join(flickr_yahoo_path,json_file_name))
 
         # convert into data frame and restrict/format 
         photo_df = pd.DataFrame(photo_list)
@@ -142,4 +146,5 @@ if __name__ == '__main__':
 
         # insert into sql data base 
         insert_loc_sql(photo_list,init)
+        
         init = False

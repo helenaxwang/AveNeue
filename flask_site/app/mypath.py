@@ -2,77 +2,96 @@ import itertools
 import numpy as np
 #import collections
 import pdb
+from node import node
+# http://stackoverflow.com/questions/6914803/python-iterator-through-tree-with-list-of-children
+
+# http://stackoverflow.com/questions/2482602/a-general-tree-implementation-in-python
+def build_tree(currloc=0,locations=[0,1,2]):
+    #assert(nvisits <= len(locations))
+    n = node(currloc)
+    newlocs = list(set(locations)-set([n.value]))
+    for val in newlocs:
+        n.add_child(build_tree(val,newlocs))
+    return n
+
+# http://stackoverflow.com/questions/11570499/generate-all-leave-to-root-paths-in-a-dictionary-tree-in-python
+# http://stackoverflow.com/questions/5671486/enumerating-all-paths-in-a-tree
+# def paths(tree):
+#     root = tree.value
+#     rooted_paths = [[root]]
+#     for subtree in tree.children:
+#         useable = paths(subtree)
+#         print useable
+#         for path in useable:
+#             rooted_paths.append([root]+path)
+#     return rooted_paths
+
 
 # TODO: make this faster by using iterators effectively
-# Take into account initial point, flag in the other function
-def find_best_path(distance_matrix,duration_matrix, loc_duration=None, loc_score=None):
+def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, time_score):
     # number of destinations to visit
     # rows = origins, columns = destinations  
-    nplaces = distance_matrix.shape[1]
+    nplaces = distance_matrix.shape[0]
+    visit_paths = build_tree(0,range(nplaces))
+    visit_paths = visit_paths.paths()
 
-    # arranged as N-1 elements starting at first location
-    # N-2 elements starting at second location, N-3 elements at third...
-    # Up till N-1 element as origin 
-    pairwise_path = list(itertools.permutations(range(0,nplaces),2))
+    max_score = 0.0
+    max_path = []
 
-    # place_lists = []
-    # for i in range(nplaces):
-    #     curr_list = i * (nplaces-1) + np.array(range(nplaces-1))
-    #     place_lists.append(curr_list)
-    # print place_lists
-    place_lists = range(len(pairwise_path))
-
-    # get all possible combinations of pairwise paths
-    # this assumes paths are symmetric about the diagonal 
-    # place_lists = []
-    # init = 0
-    # for i in range(1,nplaces):
-    #     curr_list = range(init,init+nplaces-i)
-    #     #print i, curr_list
-    #     init = curr_list[-1]+1
-    #     place_lists.append(curr_list)
-    #
-    # A = range(0,nplaces-1) # indexing start 1 
-    # B = range(A[-1]+1,(A[-1]+1)+nplaces-2) #indexing start 2
-    # C = range(B[-1]+1,(B[-1]+1)+nplaces-3) #indexing start 3
-    # place_lists = [A, B, C]
-
-    # each number in each tuple is a pairwise path
-    selected_places = list(itertools.permutations(place_lists, nplaces))
-    #selected_places = list(itertools.product(*place_lists))
-    print '# of permuations ', len(selected_places)
-
-    min_cost = float('inf')
-    min_path = []
     # iterate through route 
-    for path in selected_places: 
-        pairwise_idx = [pairwise_path[step] for step in path] # index for path
-        
-        # convert to array to check for feasibility 
-        pairwise_idx_array = np.array(pairwise_idx) 
-        start_pts = pairwise_idx_array[:,0]
-        end_pts = pairwise_idx_array[:,1]
-        #pdb.set_trace()
-        if (np.any(start_pts[1:] != end_pts[:pairwise_idx_array.shape[0]-1])) or \
-            (len(start_pts) > len(set(start_pts)) or len(end_pts) > len(set(end_pts))):
-            #print 'rejected path', pairwise_idx
-            #pdb.set_trace()
+    for path in visit_paths: 
+        if len(path) != nlocations:
             continue
-        
-        #pdb.set_trace()
-        distance = [distance_matrix[d] for d in pairwise_idx] # distance along the path 
-        duration = [duration_matrix[d] for d in pairwise_idx] # duration along the route
-        #dur   = [loc_duration[s] for s in start_pts]
-        #score = [loc_score[s] for s in start_pts]
 
-        curr_cost = sum(distance) # TODO: this should be a weighted sum with respect to time!!!
-        #pdb.set_trace()
+        # subtract y index by 1 because origin point cannot serve as a destination    
+        curr_path = [(p1,p2-1) for p1, p2 in zip(path, path[1:])]
+
+        distance = np.array([distance_matrix[p] for p in curr_path]) # distance along the path
+
+        # compute the time componnent: 
+        dur_transit = np.array([duration_matrix[p] for p in curr_path]) # duration along the route
+        dur_stopped = np.array([loc_duration[p] for p in path]) # duration while stopped at each point
+
+        # compute the cumulative value in time -- so we can figure out when we'll get to a place  
+        cumdur = np.cumsum(dur_stopped[:-1]+dur_transit)
+        cumdur = np.append(0,cumdur)
+        # go to the nearest hour 
+        time_idx = np.floor(cumdur/60).astype('int')
+        
+        # compute the location score as a function of time and location
+        curr_time_score = [time_score[(loc,hr)] for loc, hr in zip(path,time_idx)] 
+        # get weighted score for this route 
+        curr_score = (1. /sum(distance)) * sum(curr_time_score) 
+        
         # iterate through until we find the best path 
-        if curr_cost < min_cost:
-            min_cost = curr_cost
-            min_path = pairwise_idx
-            print min_cost, min_path
-        else:
-            print pairwise_idx
-    #pdb.set_trace()
-    return min_path
+        #print path, distance, sum(distance)
+        if curr_score > max_score:
+            max_score = curr_score
+            max_path  = curr_path
+            print 'MAX SELECTED', max_score, path, curr_path
+        #pdb.set_trace()
+    return max_path
+
+if __name__ == '__main__':
+    
+    def test1():
+        import time
+        t0 = time.time()
+        n = build_tree(0,range(0,5))
+        print n
+        print time.time() - t0
+
+    def test2():
+        t1 = time.time()
+        print list(n.paths())
+        print time.time() - t1
+
+    def test3():
+        distance_matrix = np.arange(12).reshape((4,3)) 
+        duration_matrix = np.ones((4,3))*60
+        loc_duration = np.array([1,1,1,1])*60
+        time_score = np.ones((4,24))
+        min_path = find_best_path(distance_matrix,duration_matrix,4,loc_duration,time_score)
+        print min_path
+
+    test3()

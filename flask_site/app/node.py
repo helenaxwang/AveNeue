@@ -10,7 +10,8 @@ class node(object):
     def add_all_children(self,values):
         for val in list(set(values)-set([self.value])):
             self.add_child(node(val))
-
+    
+    # http://stackoverflow.com/questions/20242479/printing-a-tree-datastructure-in-python
     def __repr__(self, level=0):
         ret = " * "*level+repr(self.value)+"\n"
         for child in self.children:
