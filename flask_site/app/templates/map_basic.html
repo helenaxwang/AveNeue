@@ -1,34 +1,67 @@
+{% extends "layout/base.html" %}
+
+{% block head %}
 <!-- https://developers.google.com/maps/documentation/javascript/heatmaplayer -->
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <style>
-      html, body, #map-canvas {
-        height: 100%;
-        margin: 0px;
-        padding: 10px
-      }
+  <style>
+    html, body, #map-canvas {
+      height: 95%;
+      margin: 0px;
+      padding: 20px
+    }
 /*      #panel {
-        position: absolute;
-        top: 5px;
-        left: 50%;
-        margin-left: -180px;
-        z-index: 5;
-        background-color: #fff;
-        padding: 5px;
-        border: 1px solid #999;
-      }*/
-    .fill { 
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      margin-left: -180px;
+      z-index: 5;
+      background-color: #fff;
+      padding: 5px;
+      border: 1px solid #999;
+    }*/
+  .fill { 
     min-height: 600px;
     height: 80%;
-    }
-    </style>
+  }
+  </style>
+  <link href="static/starter-template.css" rel="stylesheet">
+  <!-- Bootstrap core CSS -->
+  <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
+{% endblock %}
 
-    <!-- Bootstrap core CSS -->
-    <link href="../static/css/bootstrap.min.css" rel="stylesheet">
 
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
+{% block content %}
+
+<!-- <div class='container'> -->
+  <!-- <div id="panel">
+    <button onclick="toggleHeatmap()">Toggle Heatmap</button>
+  </div> -->
+  <div class="col-md-5">
+    <table class="table table-hover">
+     
+      <tr><th> Suggsted Itinerary </td> </tr>
+      <!--
+      {% for loc in attractions %}
+      <tr><td>{{ loc['Name'] }}</td><td>{{ loc['Id']}}</td><td>{{ loc['Address']}}</td></tr>
+      {% endfor %}
+      -->
+      {% for index, loc in centroids.iterrows() %}
+      <tr><td>{{ index }}</td><td>{{ loc['score'] }}</td></tr>
+      {% endfor %}
+      <tr><td id ="travel_info" colspan=2></td></tr>
+    </table>
+  </div>
+
+  <div class="container fill">
+    <div id="map-canvas"></div>
+  </div>
+
+<!-- </div> --> <!-- /container -->
+
+{% endblock %}
+
+
+{% block scripts %}
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
 
 <script>
 
@@ -219,29 +252,4 @@ function toggleHeatmap() {
 google.maps.event.addDomListener(window, 'load', initialize);
 
 </script>
-
-</head>
-  <body>
-<!-- <div id="panel">
-      <button onclick="toggleHeatmap()">Toggle Heatmap</button>
-    </div> -->
-    <div class="col-md-4">
-    <table class="table table-hover">
-     
-    <tr><th> Suggsted Itinerary </td> </tr>
-    <!--
-    {% for loc in attractions %}
-    <tr><td>{{ loc['Name'] }}</td><td>{{ loc['Id']}}</td><td>{{ loc['Address']}}</td></tr>
-    {% endfor %}
-    -->
-    {% for index, loc in centroids.iterrows() %}
-    <tr><td>{{ index }}</td><td>{{ loc['score'] }}</td></tr>
-    {% endfor %}
-    <tr><td id ="travel_info" colspan=2></td></tr>
-    </table>
-    </div>
-    <div class="container fill">
-      <div id="map-canvas"></div>
-    </div>
-  </body>
-</html>
+{% endblock %}

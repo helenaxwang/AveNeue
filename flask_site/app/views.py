@@ -16,7 +16,7 @@ db = mdb.connect('localhost', 'root', '', 'insight')
 # landing page 
 @app.route('/')
 @app.route('/index')
-def map_with_bootstrap():
+def landing():
     return render_template('index.html')
 
 @app.route('/map')
