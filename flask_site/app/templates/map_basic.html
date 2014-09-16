@@ -54,12 +54,17 @@ var routeLocations = new Array();
 {% endfor %}
 console.log(routeLocations)
 
-var sanFrancisco = new google.maps.LatLng(37.774546, -122.433523);
-var newYork = new google.maps.LatLng(40.7447888,-73.9809217);
+//var sanFrancisco = new google.maps.LatLng(37.774546, -122.433523);
+//var newYork = new google.maps.LatLng(40.7447888,-73.9809217);
 var myLocation = new google.maps.LatLng({{ myloc[0] }},{{ myloc[1] }});
 var plotBoxes = false
+var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png', 
+'blue_MarkerD.png', 'blue_MarkerE.png', 'blue_MarkerF.png', 'blue_MarkerG.png']
 
+// Initialize plotting 
 function initialize() {
+  var infoWindow = new google.maps.InfoWindow();
+
   var mapOptions = {
     zoom: 15,
     center: myLocation,
@@ -68,100 +73,133 @@ function initialize() {
 
   map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 
-  // set heat map 
+  addHeatMap(map)
+  addInitialLoc(map)
+  addCentroidMarkers(map,infoWindow)
+  addAttractionMarkers(map)
+  if (plotBoxes){
+    addLocationBounds(map)
+  }
+  addPathLocations(map)
+}
+
+
+// set heat map 
+function addHeatMap(map){
   var pointArray = new google.maps.MVCArray(heatMapData);
-  
   var heatmap = new google.maps.visualization.HeatmapLayer({
     data: pointArray
   });
   heatmap.setMap(map);
+}
 
-  // set marker 
+// set marker for starting location 
+function addInitialLoc(map){
   var marker = new google.maps.Marker({
     position: myLocation,
     map: map,
     title:"My location"
   });
   marker.setMap(map);
+}
 
-  // set additional markers for detected centroids 
-  {% for loc in centroids %}
+// set additional markers for detected centroids from flickr photos
+function addCentroidMarkers(map, infoWindow){
+  {% for index, loc in centroids.iterrows() %}
+    coordinate = new google.maps.LatLng({{ loc['lat'] }},{{ loc['lng'] }})
+
     var marker = new google.maps.Marker({
-      position: new google.maps.LatLng({{ loc[0] }},{{ loc[1] }}),
+      position: coordinate,
       map: map,
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
         scale: 5
       },
     });
-    marker.setMap(map);
+    google.maps.event.addListener(marker, 'click', function(event) {
+            infoWindow.setPosition(coordinate);
+            infoWindow.setContent( String({{index}}) + '<br>' + String({{ loc['score'] }}) );
+            infoWindow.open(map,this);
+    });
+    //marker.setMap(map);
   {% endfor %}
+}
 
-  // set additional markers for landmarks 
+// set additional markers for landmarks 
+function addAttractionMarkers(map){
   {% for loc in attractions %}
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng({{ loc['loc_lat'] }},{{ loc['loc_lng'] }}),
       map: map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8
-      },
+      icon: '../static/images/mapmarkers/darkgreen_MarkerA.png',
     });
     marker.setMap(map);
     //console.log([ {{ loc['viewport_sw_lat'] }}, {{ loc['viewport_sw_lng'] }}, 
     //  {{ loc['viewport_ne_lat'] }}, {{ loc['viewport_ne_lng'] }} ])
   {% endfor %}
+}
 
-  //add rectangle boxes
-  if (plotBoxes){
-    {% for loc in attractions[:1] %}
-      var rectangle = new google.maps.Rectangle({
-      strokeColor: '#FF0000',
-      strokeOpacity: 0.8,
-      strokeWeight: 2,
-      fillColor: '#FF0000',
-      fillOpacity: 0.35,
+//add rectangle boxes
+//Not used -- good for sanity check
+function addLocationBounds(map){
+  {% for loc in attractions[:1] %}
+    var rectangle = new google.maps.Rectangle({
+    strokeColor: '#FF0000',
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: '#FF0000',
+    fillOpacity: 0.35,
+    map: map,
+    bounds: new google.maps.LatLngBounds(
+      new google.maps.LatLng({{ loc['bounds_sw_lat'] }}, {{ loc['bounds_sw_lng'] }}),
+      new google.maps.LatLng({{ loc['bounds_ne_lat'] }}, {{ loc['bounds_ne_lng'] }}))
+    });
+  {% endfor %}
+}
+
+function addPathLocations(map){
+  {% for loc in path_locations %}
+    icon_url = '../static/images/mapmarkers/'.concat(routeSymbolPng.shift())
+    console.log(icon_url)
+    var marker = new google.maps.Marker({
+      position: new google.maps.LatLng({{ loc[0] }},{{ loc[1] }}),
       map: map,
-      bounds: new google.maps.LatLngBounds(
-        new google.maps.LatLng({{ loc['bounds_sw_lat'] }}, {{ loc['bounds_sw_lng'] }}),
-        new google.maps.LatLng({{ loc['bounds_ne_lat'] }}, {{ loc['bounds_ne_lng'] }}))
-      });
-    {% endfor %}
-  }
-
+      icon: icon_url,
+    });
+   marker.setMap(map);
+  {% endfor %}
+}
 
     // Draw path ----------------------------
     //Intialize the Path Array
-    var path = new google.maps.MVCArray();
+    // var path = new google.maps.MVCArray();
 
     //Intialize the Direction Service
-    var service = new google.maps.DirectionsService();
+    // var service = new google.maps.DirectionsService();
 
     //Set the Path Stroke Color
-    var poly = new google.maps.Polyline({ map: map, strokeColor: '#4986E7' });
+    // var poly = new google.maps.Polyline({ map: map, strokeColor: '#4986E7' });
 
     //Loop and Draw Path Route between the Points on MAP
-    for (var i = 0; i < routeLocations.length; i++) {
-        if ((i + 1) < routeLocations.length) {
-            var src = routeLocations[i];
-            var des = routeLocations[i + 1];
-            path.push(src);
-            poly.setPath(path);
-            service.route({
-                origin: src,
-                destination: des,
-                travelMode: google.maps.DirectionsTravelMode.WALKING
-            }, function (result, status) {
-                if (status == google.maps.DirectionsStatus.OK) {
-                    for (var i = 0, len = result.routes[0].overview_path.length; i < len; i++) {
-                        path.push(result.routes[0].overview_path[i]);
-                    }
-                }
-            });
-        }
-    }
-
-}
+    // for (var i = 0; i < routeLocations.length; i++) {
+    //     if ((i + 1) < routeLocations.length) {
+    //         var src = routeLocations[i];
+    //         var des = routeLocations[i + 1];
+    //         path.push(src);
+    //         poly.setPath(path);
+    //         service.route({
+    //             origin: src,
+    //             destination: des,
+    //             travelMode: google.maps.DirectionsTravelMode.WALKING
+    //         }, function (result, status) {
+    //             if (status == google.maps.DirectionsStatus.OK) {
+    //                 for (var i = 0, len = result.routes[0].overview_path.length; i < len; i++) {
+    //                     path.push(result.routes[0].overview_path[i]);
+    //                 }
+    //             }
+    //         });
+    //     }
+    // }
 
 function toggleHeatmap() {
   heatmap.setMap(heatmap.getMap() ? null : map);
@@ -176,9 +214,15 @@ google.maps.event.addDomListener(window, 'load', initialize);
     </div> -->
     <div class="col-md-4">
     <table class="table table-hover">
-      <tr><th> Suggsted Itinerary </td> </tr>
+     
+    <tr><th> Suggsted Itinerary </td> </tr>
+    <!--
     {% for loc in attractions %}
     <tr><td>{{ loc['Name'] }}</td><td>{{ loc['Id']}}</td><td>{{ loc['Address']}}</td></tr>
+    {% endfor %}
+    -->
+    {% for index, loc in centroids.iterrows() %}
+    <tr><td>{{ index }}</td><td>{{ loc['score'] }}</td></tr>
     {% endfor %}
     </table>
     </div>

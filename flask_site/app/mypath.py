@@ -3,6 +3,7 @@ import numpy as np
 #import collections
 import pdb
 from node import node
+import time
 # http://stackoverflow.com/questions/6914803/python-iterator-through-tree-with-list-of-children
 
 # http://stackoverflow.com/questions/2482602/a-general-tree-implementation-in-python
@@ -46,8 +47,6 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, ti
         # subtract y index by 1 because origin point cannot serve as a destination    
         curr_path = [(p1,p2-1) for p1, p2 in zip(path, path[1:])]
 
-        distance = np.array([distance_matrix[p] for p in curr_path]) # distance along the path
-
         # compute the time componnent: 
         dur_transit = np.array([duration_matrix[p] for p in curr_path]) # duration along the route
         dur_stopped = np.array([loc_duration[p] for p in path]) # duration while stopped at each point
@@ -56,10 +55,18 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, ti
         cumdur = np.cumsum(dur_stopped[:-1]+dur_transit)
         cumdur = np.append(0,cumdur)
         # go to the nearest hour 
-        time_idx = np.floor(cumdur/60).astype('int')
+        time_idx = np.floor(cumdur/3600).astype('int')
         
+        if any(time_idx>23):
+            #print 'trip exceeds 24 hrs!'
+            continue
+
         # compute the location score as a function of time and location
         curr_time_score = [time_score[(loc,hr)] for loc, hr in zip(path,time_idx)] 
+
+        # distance along the path
+        distance = np.array([distance_matrix[p] for p in curr_path]) 
+
         # get weighted score for this route 
         curr_score = (1. /sum(distance)) * sum(curr_time_score) 
         
@@ -69,13 +76,14 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, ti
             max_score = curr_score
             max_path  = curr_path
             print 'MAX SELECTED', max_score, path, curr_path
+        # else:
+        #     print 'REJECTED', path, curr_path
         #pdb.set_trace()
     return max_path
 
 if __name__ == '__main__':
     
     def test1():
-        import time
         t0 = time.time()
         n = build_tree(0,range(0,5))
         print n
@@ -88,8 +96,8 @@ if __name__ == '__main__':
 
     def test3():
         distance_matrix = np.arange(12).reshape((4,3)) 
-        duration_matrix = np.ones((4,3))*60
-        loc_duration = np.array([1,1,1,1])*60
+        duration_matrix = np.ones((4,3))*3600
+        loc_duration = np.array([1,1,1,1])*3600
         time_score = np.ones((4,24))
         min_path = find_best_path(distance_matrix,duration_matrix,4,loc_duration,time_score)
         print min_path

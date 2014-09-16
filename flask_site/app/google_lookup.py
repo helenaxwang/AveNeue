@@ -132,7 +132,7 @@ if __name__ == '__main__':
         [ 40.75315722, -73.9821481 ], [ 40.7540401 , -73.98401502], [ 40.74050068, -73.98470645],\
         [ 40.7416182, -73.9893952], [ 40.7501 , -73.98791818]]
         # assumes one hour at each location 
-        duration_at_each_location = np.ones(len(nearby_locs)+1)
+        duration_at_each_location = np.ones(len(nearby_locs)+1)*3600
         # time score is obtained from flickr photo density 
         time_score = np.random.rand(len(nearby_locs)+1,24)
         

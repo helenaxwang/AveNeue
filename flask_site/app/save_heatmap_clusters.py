@@ -49,21 +49,28 @@ if __name__ == '__main__':
     t0 = time.time()
     # for each centroid of the cluster, compute time values
     hour_mean_list = []
-    for cent in centroids:
-        # get photos 
-        centroid_photos_withtime = get_timemap_sql(db,cent)
-        # get photo time line
-        hour_mean = get_photo_density(centroid_photos_withtime)
-        # add to this list 
-        hour_mean_list.append(hour_mean)
+    cent_idx = range(len(centroids))
+    for idx,cent in enumerate(centroids):
+        try:
+            # get photos 
+            centroid_photos_withtime = get_timemap_sql(db,cent)
+            # get photo time line
+            hour_mean = get_photo_density(centroid_photos_withtime)
+            # add to this list 
+            hour_mean_list.append(hour_mean)
+        except Exception as e:
+            print e
+            print idx, cent
+            del cent_idx[idx]
     print time.time() - t0, "seconds wall time for computing hour scores"
 
     # convert into data frame 
     hour_means = pd.DataFrame(hour_mean_list)
-    hour_means.index = range(len(centroids))
+    #hour_means.index = range(len(centroids))
+    hour_means.index = cent_idx
     temp = pd.DataFrame(centroids)
-    hour_means['lat'] = temp[0]
-    hour_means['lng'] = temp[1]
+    hour_means['lat'] = temp[0][cent_idx]
+    hour_means['lng'] = temp[1][cent_idx]
     #insert_centroids_sql(db,centroids,init=True)
     insert_centroids_sql_df(db,hour_means)
     

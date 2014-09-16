@@ -15,6 +15,7 @@ def get_tripomatic_sql(db,lat,lng,lim=0.005):
     return attractions
 
 # get the locations of tourist attractions by their bounding boxes 
+# not used!! because bounding boxes are inacurate -- perhaps to be refined later 
 def get_tripomatic_lookup_by_bounds(db,lat,lng):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
