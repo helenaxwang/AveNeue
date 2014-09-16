@@ -4,11 +4,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Examples for bootstrap-slider plugin">
+    <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Slider for Bootstrap Examples Page</title>
+    <title> AveNeue </title>
 
     <!-- Bootstrap core CSS -->
     <link href="../static/css/bootstrap.min.css" rel="stylesheet">
@@ -17,9 +17,28 @@
     <link href="static/starter-template.css" rel="stylesheet">
     <link href="static/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="static/css/bootstrap-slider.css" rel="stylesheet">
+    <link type="text/css" href="static/css/bootstrap.min.css" />
+    <link type="text/css" href="static/css/bootstrap-timepicker.min.css" />
 
     <!-- Custom styles for this template -->
     <style type='text/css'>
+
+    .navbar-custom .icon-bar {
+      background-color:#fff;
+    }
+
+    .navbar-custom {
+      background-color: #168ccc;
+      color:#fff;
+    }
+
+    .navbar-custom li>a:hover,.navbar-custom li>a:focus {
+      background-color:#49bfff;
+    }
+
+    .navbar-custom a{
+        color:#fefefe;
+    }
 
 		/* Customize container */
 		.container {
@@ -30,12 +49,19 @@
 			background-color: #E0E0E0;
 		}
 
+    .borderless tbody tr td, .borderless thead tr th{
+      border: none;
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+
 		.slider-example {
-			padding: 10px 0;
+			padding: 20px 0;
 			margin: 35px 0;
+      max-width: 600px;
 		}
 
-		#noveltySlider .slider-selection {
+		#slider .slider-selection {
    			background: #BABABA;
   		}
    
@@ -53,7 +79,7 @@
 
   	<!-- header navigation bar  -->
 
-    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="navbar navbar-custom navbar-fixed-top" role="navigation">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".navbar-collapse">
@@ -77,52 +103,76 @@
 	<br><br>
 
 	<!-- main content   -->
-    <center>
     <div class="container">
 
-      <div class="jumbotron starter-template">
-      <h1> Peronalize your walking tour  </h1>
+      <div class="starter-template">
+      <h1> Personalize your walking tour  </h1>
         <!-- <p class="lead"> Choose your options <p> -->
       </div>
 
-      <div >
-      <div class="examples">
-      	<div class='slider-example'>
-      		<!-- <div class="well"> -->
-				<input id="ex1" data-slider-id='noveltySlider' type="text" 
-        data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5"/>
-			<!-- </div> -->
+  <div class="row">
+    <!-- Sliders   -->
+    <div class='col-md-6'>
+      <div class="well"> 
+        <table class="table borderless">
+          <tr>
+            <td align="right">Off the beaten path</td>
+            <td><input id="ex1" data-slider-id='slider' class='span2' type="text" 
+                data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5"/>
+              </td>
+            <td> Popular </td>
+          <tr>
+            <td align="right">Take it easy</td>
+            <td><input id="ex2" data-slider-id='slider' class='span2' type="text" 
+                data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5"/>
+              </td>
+            <td>See as much as possible</td>
+        </table>
       </div>
-      </div> <!-- /examples -->
-
+    </div>
 
     <br><br>
     
-     <!-- Address location  -->
-    <div class="input-group">
-        <input type="text" class="form-control" placeholder="Starting location">
+    <!-- Address location  -->
+    <div class='col-md-6'>
+        <div class="input-group col-sm-12">
+            <input type="text" class="form-control input-lg" id="startingLocation" placeholder="Starting Location">
+        </div>
+        
+        <br><br>
+        <div class="input-append bootstrap-timepicker">
+              <input id="timepicker1" type="text" class="input-small">
+              <span class="add-on"><i class="icon-time"></i></span>
+        </div>
+
+        <!-- Other crap  -->
+        <div id="divbox"> 
+        </div>
     </div>
-    
+
+  </div> <!-- /row  -->
+
     <!-- Go button  -->
-    <br><br>
-    <div class="buttonbox">
-          <button id="submit" class="btn btn-default"> Go! </button>
+    <div class='col-md-12'>
+      <center>
+      <div class="buttonbox">
+          <button id="submit" class="btn btn-primary btn-lg"> Go! </button>
+      </div>
+     </center>
     </div>
 
-    <!-- Other crap  -->
-    <div id="divbox"> 
-    </div>
-
-    </div> <!-- /container -->
-    </center>
+  </div> <!-- /container -->
 
 
     <!-- core JavaScript
     ================================================== -->
     <!--  <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> -->
     <script type='text/javascript' src="static/bower_components/jquery/dist/jquery.min.js"></script>
-    <script type='text/javascript' src="static/js/bootstrap-slider.js"></script>
     <script src="static/js/bootstrap.min.js"></script>
+    <script type='text/javascript' src="static/js/bootstrap-slider.js"></script>
+    <script type="text/javascript" src="static/js/bootstrap-timepicker.min.js"></script>
+   
+
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
@@ -133,9 +183,17 @@
     <script type='text/javascript'>
     	$(document).ready(function() {
     		
-    		var clickfun = function() {
-                 window.location = "http://localhost:5000/map";
-            }
+          //submitting the form redirects the page
+        $('#submit').click(function(e){
+
+          var start = document.getElementById('startingLocation');
+          start = start.value;
+          var touristy_score = document.getElementById('ex1');
+          console.log(touristy_score.value)
+          window.location.href = "http://localhost:5000/map";
+          return 0;
+        });
+
 
 	    	$('#ex1').slider({
 	          	formatter: function(value) {
@@ -143,7 +201,30 @@
 	          	}
 	        });
 
+        $('#ex2').slider({
+              formatter: function(value) {
+                return value;
+              }
+          });
+
+        $('#timepicker1').timepicker({
+          });
+
     	});
     </script>
+
+    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places"></script>
+    <script>
+    //autocomplete for startingLocation
+    var input = /** @type {HTMLInputElement} */(
+        document.getElementById('startingLocation'));
+      var autocomplete = new google.maps.places.Autocomplete(input);
+      //restrict to NYC
+      var sw = google.maps.LatLng(40.60, -74.20);
+      var ne = google.maps.LatLng(40.90, -73.70);
+      var LatLngBounds = google.maps.LatLngBounds(sw, ne);
+      autocomplete.setBounds(LatLngBounds);
+    </script>
+
   </body>
 </html>
