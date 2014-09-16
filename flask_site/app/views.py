@@ -34,7 +34,7 @@ def map():
     # initialize starting location 
     #init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
     init_loc = [40.7298482,-73.9974519] # washington square park 
-    bound_in_miles = 1.0
+    bound_in_miles = 0.8
     bound_in_latlng = bound_in_miles/69.
     #bound_in_latlng = 0.015
 
@@ -85,20 +85,25 @@ def map():
 
     # calculate optimal path 
     if do_path:
+        maxlocs = 9
+        nvisits = 5
         # query google distance matrix api and build distance matrix
         t0 = time.time()
-        if len(centroids) > 9:
-            centroids = centroids[:9]
+        if len(centroids) > maxlocs:
+            centroids = centroids[:maxlocs]
         jsonResponse = get_google_direction_matrix(centroids,init_loc)
         rows = jsonResponse['rows']
         distance_matrix,duration_matrix = get_distance_matrix(rows)
         print time.time() - t0, 'seconds for querying and building distance matrix'
 
         # computing time score - TODO: place holder right now!!!
-        time_score = np.random.rand(len(centroids)+1,24)
+        #time_score = np.random.rand(len(centroids)+1,24)
+        time_score = centroids_full[hour_keys].values
+        # add a row of zeros in the beginning, corresponding to the initial starting location
+        # this should not count for anything 
+        time_score = np.vstack([np.zeros(24), time_score])
 
         # find optimal path
-        nvisits = 5
         # assumes one hour at each location 
         duration_at_each_location = np.ones(len(centroids)+1)*3600
         path = find_best_path(distance_matrix,duration_matrix,nvisits,\
@@ -115,7 +120,7 @@ def map():
     #pdb.set_trace()
     # box = [init_loc_dict['viewport']['southwest']['lat'], init_loc_dict['viewport']['southwest']['lng'],\
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
-    return render_template("map_basic.html", heatmaploc=heatmap,myloc=init_loc,\
+    return render_template("map_basic.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs)
 
 
@@ -129,3 +134,4 @@ def cities_page_fancy():
     for result in query_results:
         cities.append(dict(name=result[0], country=result[1], population=result[2]))
     return render_template('cities.html', cities=cities)
+

@@ -52,7 +52,6 @@ var routeLocations = new Array();
     new google.maps.LatLng({{ loc[0] }}, {{ loc[1] }})
     );
 {% endfor %}
-console.log(routeLocations)
 
 //var sanFrancisco = new google.maps.LatLng(37.774546, -122.433523);
 //var newYork = new google.maps.LatLng(40.7447888,-73.9809217);
@@ -60,6 +59,7 @@ var myLocation = new google.maps.LatLng({{ myloc[0] }},{{ myloc[1] }});
 var plotBoxes = false
 var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png', 
 'blue_MarkerD.png', 'blue_MarkerE.png', 'blue_MarkerF.png', 'blue_MarkerG.png']
+
 
 // Initialize plotting 
 function initialize() {
@@ -83,7 +83,6 @@ function initialize() {
   addPathLocations(map)
 }
 
-
 // set heat map 
 function addHeatMap(map){
   var pointArray = new google.maps.MVCArray(heatMapData);
@@ -104,7 +103,7 @@ function addInitialLoc(map){
 }
 
 // set additional markers for detected centroids from flickr photos
-function addCentroidMarkers(map, infoWindow){
+function addCentroidMarkers(map,infoWindow){
   {% for index, loc in centroids.iterrows() %}
     coordinate = new google.maps.LatLng({{ loc['lat'] }},{{ loc['lng'] }})
 
@@ -116,11 +115,16 @@ function addCentroidMarkers(map, infoWindow){
         scale: 5
       },
     });
+
     google.maps.event.addListener(marker, 'click', function(event) {
-            infoWindow.setPosition(coordinate);
-            infoWindow.setContent( String({{index}}) + '<br>' + String({{ loc['score'] }}) );
-            infoWindow.open(map,this);
+             infoWindow.setPosition(coordinate);
+             infoWindow.setContent( String({{index}}) + '<br>' + String({{ loc['score'] }}) );
+             infoWindow.open(map,this);
     });
+    // var infoWindow = new google.maps.InfoWindow( 
+    //   {content: String({{index}}) + '<br>' + String({{ loc['score'] }}) } 
+    //   );
+    //infoWindow.open(map,marker);
     //marker.setMap(map);
   {% endfor %}
 }
@@ -157,17 +161,18 @@ function addLocationBounds(map){
   {% endfor %}
 }
 
+// locations found along the path
+// excludes initial starting location 
 function addPathLocations(map){
-  {% for loc in path_locations %}
-    icon_url = '../static/images/mapmarkers/'.concat(routeSymbolPng.shift())
-    console.log(icon_url)
+  {% for loc in path_locations[1:] %}
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng({{ loc[0] }},{{ loc[1] }}),
       map: map,
-      icon: icon_url,
+      icon: '../static/images/mapmarkers/'.concat(routeSymbolPng.shift()),
     });
+   console.log( [{{loc[0]}}, {{loc[1]}}] )
    marker.setMap(map);
-  {% endfor %}
+   {% endfor %}
 }
 
     // Draw path ----------------------------
@@ -227,7 +232,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
     </table>
     </div>
     <div class="container fill">
-      <div id="map-canvas"></div>  <!-- class="container col-md-6 fill" -->
+      <div id="map-canvas"></div>
     </div>
   </body>
 </html>

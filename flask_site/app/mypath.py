@@ -27,7 +27,6 @@ def build_tree(currloc=0,locations=[0,1,2]):
 #             rooted_paths.append([root]+path)
 #     return rooted_paths
 
-
 # TODO: make this faster by using iterators effectively
 def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, time_score):
     # number of destinations to visit
@@ -56,11 +55,12 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, ti
         cumdur = np.append(0,cumdur)
         # go to the nearest hour 
         time_idx = np.floor(cumdur/3600).astype('int')
-        
+
         if any(time_idx>23):
             #print 'trip exceeds 24 hrs!'
             continue
 
+        # print path, time_idx, time_score.shape
         # compute the location score as a function of time and location
         curr_time_score = [time_score[(loc,hr)] for loc, hr in zip(path,time_idx)] 
 

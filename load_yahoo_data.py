@@ -70,13 +70,13 @@ def insert_loc_sql(photos,init=True):
         if init:
             cur.execute("DROP TABLE IF EXISTS flickr_yahoo_nyc")
             cur.execute("CREATE TABLE flickr_yahoo_nyc(Id VARCHAR(25) PRIMARY KEY, Lat FLOAT, Lng FLOAT, accuracy INT, \
-                user_id VARCHAR(25), user_name VARCHAR(500), date_taken DATETIME, date_uploaded VARCHAR(25), \
+                page_url VARCHAR(80), user_id VARCHAR(25), user_name VARCHAR(500), date_taken DATETIME, date_uploaded VARCHAR(25), \
                 device VARCHAR(100), video_marker INT)")
         for photo in photos:
-            cmd = "INSERT INTO flickr_yahoo_nyc (Id, Lat, Lng, accuracy,user_id,user_name,\
+            cmd = "INSERT INTO flickr_yahoo_nyc (Id, Lat, Lng, accuracy, page_url, user_id, user_name,\
                 date_taken, date_uploaded, device, video_marker) \
-                VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', '%s', '%s', %s) " \
-                % (photo['id'].encode('ascii','ignore'),photo['lat'],photo['lng'], photo['accuracy'],\
+                VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s) " \
+                % (photo['id'].encode('ascii','ignore'),photo['lat'],photo['lng'], photo['accuracy'], photo['page_url'], \
                     photo['user_id'],photo['user_name'].encode('ascii'),photo['date_taken'], photo['date_uploaded'],\
                     photo['device'],photo['video_marker'].encode('ascii').rstrip('\n'))
             #pdb.set_trace()
