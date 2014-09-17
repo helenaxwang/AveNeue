@@ -62,7 +62,6 @@ def write_json(photo_list, file_name):
     with open(file_name, 'wb') as fp:
         fp.write(json.dumps(photo_list, separators=(',',':')))
 
-# TODO: format DATE!!!
 def insert_loc_sql(photos,init=True):
     con = mdb.connect('localhost', 'root', '', 'insight') #host, user, password, #database
     with con:
