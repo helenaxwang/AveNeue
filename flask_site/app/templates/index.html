@@ -51,9 +51,11 @@
 
 
 {% block content %}
-	<!-- main content   -->
+<!-- main content   -->
 <div id="header">
   <div class="container">
+  <form action="/map" method="POST">
+
     <div class="row">
 
       <div class="col-lg-6">
@@ -65,17 +67,18 @@
 
       <!-- Sliders   -->
       <!-- <div class='col-md-12'> -->
+      <div class="form-group">
          <div class="well"> 
           <table class="table borderless">
             <tr>
               <td align="right">Off the beaten path</td>
-              <td><input id="ex1" data-slider-id='slider' class='span2' type="text" 
+              <td><input id="pop_req" name="pop_req" data-slider-id='slider' class='span2' type="text"
                   data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5"/>
                 </td>
               <td> Popular </td>
             <tr>
               <td align="right">Take it easy</td>
-              <td><input id="ex2" data-slider-id='slider' class='span2' type="text" 
+              <td><input id="time_req" name="time_req" data-slider-id='slider' class='span2' type="text" 
                   data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5"/>
                 </td>
               <td>See as much as possible</td>
@@ -86,31 +89,40 @@
         <!-- Address location  -->
         <div class='col-md-12'>
             <div class="input-group col-sm-12">
-                <input type="text" class="form-control input-lg" id="startingLocation" placeholder="Starting Location">
+                <input type="text" class="form-control input-lg" id="startingLocation" 
+                name="startingLocation" placeholder="Starting Location"/>
             </div>
             <br>
-            <div class="input-append bootstrap-timepicker">
+<!--             <div class="input-append bootstrap-timepicker">
                   <input id="timepicker1" type="text" class="input-small">
                   <span class="add-on"><i class="icon-time"></i></span>
-            </div>
-            
+            </div> -->
         </div>
 
-      </div>
+      </div> <!-- <div class="form-group"> -->
+      </div> <!-- /<div class="col-lg-6 col-lg-offset-0.5"> -->
       
     </div> <!-- /row  -->
     
     <!-- Go button  -->
     <div class='col-md-12 starter-template'>
       <center>
-      <div class="buttonbox">
-          <button id="submit" class="btn btn-primary btn-lg"> Go! </button>
-      </div>
+          <button type="submit" class="btn btn-primary btn-lg"> Go! </button>
      </center>
     </div>
 
+  </form>
   </div> <!-- /container -->
+</div>
 
+<div id="footer">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6 col-lg-offset-3">
+          <p class="copyright"> Copyright &copy; 2014 - Helena Wang </p>
+      </div>
+    </div>    
+  </div>  
 </div>
 
 {% endblock %}
@@ -135,26 +147,33 @@
     <script type='text/javascript'>
     	$(document).ready(function() {
     		
-          //submitting the form redirects the page
+        //submitting the form redirects the page
         $('#submit').click(function(e){
 
           var start = document.getElementById('startingLocation');
+          var touristy_score = document.getElementById('pop_req');
           console.log(start.value)
-          var touristy_score = document.getElementById('ex1');
-          //console.log(touristy_score.value)
           //window.location.href = "http://localhost:5000/map";
+          // $.ajax({
+          //   dataType: "JSON",
+          //   url:    "/map", 
+          //   data:     {'address': start.value},
+          //   success:  function(data) { 
+          //     console.log(data);
+          //   }
+          // });
           return 0;
         
         });
 
 
-	    	$('#ex1').slider({
+	    	$('#pop_req').slider({
 	          	formatter: function(value) {
 	            	return value;
 	          	}
 	        });
 
-        $('#ex2').slider({
+        $('#time_req').slider({
               formatter: function(value) {
                 return value;
               }

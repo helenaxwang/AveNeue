@@ -1,4 +1,4 @@
-from flask import render_template
+from flask import render_template, request, jsonify
 from app import app
 import pymysql as mdb
 import pprint
@@ -19,6 +19,7 @@ db = mdb.connect('localhost', 'root', '', 'insight')
 def landing():
     return render_template('index.html')
 
+#@app.route('/map', methods=["POST"])
 @app.route('/map')
 def map():
     do_heatmap = True
@@ -27,13 +28,18 @@ def map():
     do_path = False
     do_attractions = False
 
-    # results = get_google_address(this_attraction['Address'])
+    # initialize starting location from get request
+    # print request.form
+    # results = get_google_address(request.form['startingLocation'])
+    # if len(results) > 1:
+    #     print 'Warning!!! more than one location found %d' % len(results)
+    # init_loc = results[0]['geometry']['location'].values()
+    # print 'initial location:', request.form['startingLocation'], init_loc
 
-    # initialize starting location 
     #init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
-    #init_loc = [40.7298482,-73.9974519] # washington square park 
+    init_loc = [40.7298482,-73.9974519] # washington square park 
     #init_loc = [40.7148731,-73.9591367] # williamsburg
-    init_loc = [40.7324628,-73.9900081] # third ave
+    #init_loc = [40.7324628,-73.9900081] # third ave
     bound_in_miles = 0.8
     bound_in_latlng = bound_in_miles/69.
     #bound_in_latlng = 0.015
