@@ -36,16 +36,25 @@
     <button onclick="toggleHeatmap()">Toggle Heatmap</button>
   </div> -->
   <div class="col-md-5">
+    <h2> Suggsted Itinerary </h2>
     <table class="table table-hover">
      
-      <tr><th> Suggsted Itinerary </td> </tr>
+      <tr><th>Number</td><th>Score</td><th>Duration</td></tr>
       <!--
       {% for loc in attractions %}
       <tr><td>{{ loc['Name'] }}</td><td>{{ loc['Id']}}</td><td>{{ loc['Address']}}</td></tr>
       {% endfor %}
       -->
+      <!--       
       {% for index, loc in centroids.iterrows() %}
       <tr><td>{{ index }}</td><td>{{ loc['score'] }}</td></tr>
+      {% endfor %} -->
+      {% for loc in path_locations %}
+      <tr>
+        <td>{{ centroids['index'][loc[0]] }}</td> 
+        <td>{{ centroids['score'][loc[0]] }}</td>
+        <td>{{ duration_at_each_location[loc[0]] / 60 }} min </td>
+      </tr>
       {% endfor %}
       <tr><td id ="travel_info" colspan=2></td></tr>
     </table>
@@ -82,7 +91,8 @@ var heatMapData = []
 var myLocation = new google.maps.LatLng({{ myloc[0] }},{{ myloc[1] }});
 var plotBoxes = false
 var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png', 
-'blue_MarkerD.png', 'blue_MarkerE.png', 'blue_MarkerF.png', 'blue_MarkerG.png']
+'blue_MarkerD.png', 'blue_MarkerE.png', 'blue_MarkerF.png', 'blue_MarkerG.png', 
+'blue_MarkerH.png', 'blue_MarkerI.png', 'blue_MarkerJ.png', 'blue_MarkerK.png']
 
 
 // Initialize plotting 
@@ -198,11 +208,11 @@ function addLocationBounds(){
 }
 
 // locations found along the path
-// excludes initial starting location 
+// excludes initial starting location TODO: excludes first point 
 function addPathLocations(){
-  {% for loc in path_locations[1:] %}
+  {% for loc in path_locations %}
     var marker = new google.maps.Marker({
-      position: new google.maps.LatLng({{ loc[0] }},{{ loc[1] }}),
+      position: new google.maps.LatLng({{ loc[1][0] }},{{ loc[1][1] }}),
       map: map,
       icon: '../static/images/mapmarkers/'.concat(routeSymbolPng.shift()),
     });
@@ -216,7 +226,7 @@ function calcRoute() {
 
     var waypoints = [];
     {% for loc in path_locations[1:] %}  
-      waypoints.push({ location: new google.maps.LatLng({{ loc[0] }},{{ loc[1] }}) });
+      waypoints.push({ location: new google.maps.LatLng({{ loc[1][0] }},{{ loc[1][1] }}) });
     {% endfor %}
     var start = myLocation;
     var end = waypoints.pop().location;
@@ -237,8 +247,8 @@ function calcRoute() {
         for (var i = 0; i < route.legs.length; i++){
             var distance = route.legs[i].distance;
             var duration = route.legs[i].duration;
-        total_distance += distance.value;
-        total_time += duration.value;
+            total_distance += distance.value;
+            total_time += duration.value;
         };
       addTravelInfo(total_distance, total_time);
       }
@@ -246,11 +256,19 @@ function calcRoute() {
 }
 
 // TODO: modify this to acccount for time spent at each location!!
-function addTravelInfo(distance_feet, time_sec){
+function addTravelInfo(distance_meters, time_sec){
   var div = document.getElementById("travel_info");
-  distance = distance_feet / 5280;
+  //distance = distance_feet / 5280;
+  var duration_stay = 0
+  {% for loc in path_locations %}
+    duration_stay += {{ duration_at_each_location[loc[0]] }}
+  {% endfor %}
+  duration_stay = duration_stay / 3600; 
+
+  distance = distance_meters / 1000 * 0.621371
   time = time_sec / 60;
-  div.innerText = "Total distance: " + distance.toFixed(1) +" mi (" + time.toFixed(0) + " min)";
+  div.innerText = "Total distance: " + distance.toFixed(1) +" mi (" 
+    + time.toFixed(0) + " min travel, " +  duration_stay.toFixed(0) + " hr visits)";
 }
 
 

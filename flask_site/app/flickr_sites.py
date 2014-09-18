@@ -81,15 +81,26 @@ def get_centroids_sql(db,init_loc,lim=0.01):
     return centroids
 
 # get precomputed centroids of flicker photos and their time courses from heatmaps from sql
-def get_centroids_timescore_sql(db,init_loc,lim=0.01):
+# def get_centroids_timescore_sql(db,init_loc,lim=0.01):
+#     with db:
+#         cur = db.cursor(mdb.cursors.DictCursor)
+#         cmd = "SELECT * FROM flickr_clusters_nyc2 WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
+#         (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
+#         cur.execute(cmd)
+#         centroids = cur.fetchall()
+#     centroids = list(centroids)
+#     return centroids
+
+def get_centroids_timescore_sql(db,init_loc,num=5):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT * FROM flickr_clusters_nyc2 WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
-        (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
+        cmd = "SELECT *, POWER(lat - (%s), 2) + POWER(lng - (%s), 2) AS dist \
+        FROM flickr_clusters_nyc2 ORDER BY dist LIMIT %d" %(init_loc[0], init_loc[1], num)
         cur.execute(cmd)
         centroids = cur.fetchall()
-    centroids = list(centroids)
+    #centroids = list(centroids)
     return centroids
+
 
 def get_photo_density(photos, interval=30, drop_duplicates=True, normalize=False):
     # convert to data frame 

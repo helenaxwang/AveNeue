@@ -28,7 +28,13 @@ def build_tree(currloc=0,locations=[0,1,2]):
 #     return rooted_paths
 
 # TODO: make this faster by using iterators effectively
-def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, time_score):
+def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, time_score, interval=30):
+
+# distance_matrix: n+1 x n matrix, where rows correspond to origin, columns correspond to destination
+# duration_matrix: n+1 x n matrix
+# loc_duration: n+1 array, time spent at each place
+# time_score: n+1 x 48 matrix, score at each location at each half hour interval
+
     # number of destinations to visit
     # rows = origins, columns = destinations  
     nplaces = distance_matrix.shape[0]
@@ -52,16 +58,18 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, ti
 
         # compute the cumulative value in time -- so we can figure out when we'll get to a place  
         cumdur = np.cumsum(dur_stopped[:-1]+dur_transit)
-        cumdur = np.append(0,cumdur)
-        # go to the nearest hour 
-        time_idx = np.floor(cumdur/3600).astype('int')
 
-        if any(time_idx>23):
-            #print 'trip exceeds 24 hrs!'
+        cumdur = np.append(0,cumdur)
+        # go to the nearest interval 
+        time_idx = np.floor(cumdur/(60*interval)).astype('int')
+
+        if any(time_idx > 60/interval*24-1 ):
+            print 'trip exceeds 24 hrs!'
             continue
 
         # print path, time_idx, time_score.shape
         # compute the location score as a function of time and location
+        # time_score = [nlocs x ntimepts]
         curr_time_score = [time_score[(loc,hr)] for loc, hr in zip(path,time_idx)] 
 
         # distance along the path
@@ -98,7 +106,7 @@ if __name__ == '__main__':
         distance_matrix = np.arange(12).reshape((4,3)) 
         duration_matrix = np.ones((4,3))*3600
         loc_duration = np.array([1,1,1,1])*3600
-        time_score = np.ones((4,24))
+        time_score = np.ones((4,48))
         min_path = find_best_path(distance_matrix,duration_matrix,4,loc_duration,time_score)
         print min_path
 

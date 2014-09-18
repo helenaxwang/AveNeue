@@ -134,7 +134,7 @@ if __name__ == '__main__':
         # assumes one hour at each location 
         duration_at_each_location = np.ones(len(nearby_locs)+1)*3600
         # time score is obtained from flickr photo density 
-        time_score = np.random.rand(len(nearby_locs)+1,24)
+        time_score = np.random.rand(len(nearby_locs)+1,48)
         
         # --------
         # First, query google directions API
