@@ -1,8 +1,7 @@
 from flask import render_template, request, jsonify
 from app import app
 import pymysql as mdb
-import pprint
-import time 
+import pprint, time, math
 import pdb
 from flickr_sites import *
 from google_lookup import *
@@ -26,7 +25,7 @@ def map():
     do_centroid = 1 # 0 no, 1, compute online, 2 fetch from data base 
     do_timescore = False
     do_path = False
-    do_attractions = False
+    do_attractions = True
 
     # initialize starting location from get request
     # print request.form
@@ -36,11 +35,11 @@ def map():
     # init_loc = results[0]['geometry']['location'].values()
     # print 'initial location:', request.form['startingLocation'], init_loc
 
-    #init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
-    init_loc = [40.7298482,-73.9974519] # washington square park 
+    init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
+    #init_loc = [40.7298482,-73.9974519] # washington square park 
     #init_loc = [40.7148731,-73.9591367] # williamsburg
     #init_loc = [40.7324628,-73.9900081] # third ave
-    bound_in_miles = 0.8
+    bound_in_miles = 1
     bound_in_latlng = bound_in_miles/69.
     #bound_in_latlng = 0.015
 
@@ -53,11 +52,11 @@ def map():
     print time.time() - t0, "seconds wall time", len(heatmap), "heatmap values"
     #pprint.pprint(heatmap)
 
-    # calculate centroid of flickr photos
+    # cluster flickr photos to find centroids 
     t0 = time.time()
     if do_centroid == 1:
-        centroids,labels = get_clusters_dbscan(heatmap,min_samples=300)
-        centroids_full = pd.DataFrame(centroids,columns=['lat','lng'])        
+        centroids,labels = get_clusters_dbscan(heatmap,min_samples=200)
+        centroids_full = pd.DataFrame(centroids,columns=['lat','lng']) 
     elif do_centroid == 2:
         centroids_full = get_centroids_timescore_sql(db,init_loc,bound_in_latlng)
         centroids_full = pd.DataFrame(centroids_full)
@@ -69,7 +68,8 @@ def map():
     print time.time() - t0, "seconds for %d centroids" % len(centroids)
     #centroids = [[40.74844,-73.985664]]
 
-    # calculate time score 
+    # get time score for each centroid - load from database rather than calculate online
+    # TODO HERE -- different way to summarize density 
     t0 = time.time()
     if do_timescore:
         hour_keys = [str(x) for x in range(24)]
@@ -102,6 +102,21 @@ def map():
     else:
         attractions = []
     print time.time() - t0, "seconds for looking up %d nearby attractions" % len(attractions)
+    # print nearby attractions
+    # ranking/id, name, distance(in miles) to starting location
+    #pprint.pprint([(att['Id'], att['Name'], \
+    #    69*np.sqrt(_dist_squared( (att['loc_lat'], att['loc_lng']),  init_loc )) ) for att in attractions])
+
+    # proximity to attractions weighted by a gaussian 
+    #dist_weight = [ ( 1./att['Id'], _gauss2( (att['loc_lat'], att['loc_lng']),  init_loc, sigma=0.15/69) ) \
+    #for att in attractions]
+
+    # calculate the touristiness of each location based proximity to nearby attractions
+    # TODO: need to be normalized by flickr photo density 
+    centroid_touristy_score = []
+    for cent in centroids:
+        centroid_touristy_score.append(touristy_score(cent, attractions))
+    centroids_full['score'] = centroid_touristy_score
 
     # calculate optimal path 
     if do_path:
@@ -136,3 +151,18 @@ def map():
     return render_template("map_basic.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs)
 
+
+# ----------------------------------------------------------------
+# gaussian weighting function for approximity to tourist location 
+def _gauss2(X, r0=(0,0), sigma=1):
+    rad_sq = _dist_squared(X,r0)
+    return math.exp(-(rad_sq)/(2*sigma**2))
+
+def _dist_squared(x,y):
+    return np.sum(np.square(np.array(x)-np.array(y)))
+
+# TODO: need to get rid of duplicate locations! take their average!!! 
+def touristy_score(location, attractions):
+    dist_weight = [ 1./att['Id'] * _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
+    for att in attractions]
+    return 100*sum(dist_weight)

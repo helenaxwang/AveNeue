@@ -102,7 +102,7 @@ function initialize() {
   addHeatMap()
   addInitialLoc()
   addCentroidMarkers()
-  addAttractionMarkers()
+  //addAttractionMarkers()
   if (plotBoxes){
     addLocationBounds()
   }
@@ -139,7 +139,7 @@ function addCentroidMarkers(){
       map: map,
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
-        scale: 3
+        scale: 4
       },
     });
 
@@ -159,12 +159,21 @@ function addCentroidMarkers(){
 // set additional markers for landmarks 
 function addAttractionMarkers(){
   {% for loc in attractions %}
+    coordinate = new google.maps.LatLng({{ loc['loc_lat'] }},{{ loc['loc_lng'] }})
+
     var marker = new google.maps.Marker({
-      position: new google.maps.LatLng({{ loc['loc_lat'] }},{{ loc['loc_lng'] }}),
+      position: coordinate,
       map: map,
       icon: '../static/images/mapmarkers/darkgreen_MarkerA.png',
     });
-    marker.setMap(map);
+
+    // call back for popup windows
+    google.maps.event.addListener(marker, 'click', function(event) {
+       infoWindow.setPosition(coordinate);
+       infoWindow.setContent( String({{ loc['Id'] }}) );
+       infoWindow.open(map,this);
+    });
+    //marker.setMap(map);
     //console.log([ {{ loc['viewport_sw_lat'] }}, {{ loc['viewport_sw_lng'] }}, 
     //  {{ loc['viewport_ne_lat'] }}, {{ loc['viewport_ne_lng'] }} ])
   {% endfor %}
