@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     # cluster these photos into spatial clusters
     t0 = time.time()
-    centroids,labels = get_clusters_dbscan(photo_df)
+    centroids,labels = get_clusters_dbscan(photo_df,min_samples=200)
     print time.time() - t0, "seconds wall time for clustering %d centroids" % len(centroids)
     
     # resave them into sql, with cluster labels
@@ -123,6 +123,10 @@ if __name__ == '__main__':
 
     # add the number of for photos for which it was computed
     hour_means['nphotos'] = hour_score_n
+
+    # check for null values and fill them, otherwise can't input to sql 
+    print 'number of nulls', [sum(hour_means[c].isnull()) for c in hour_means.columns]
+    hour_means = hour_means.fillna(0)
 
     #insert_centroids_sql(db,centroids,init=True)
     insert_centroids_sql_df(db,hour_means)

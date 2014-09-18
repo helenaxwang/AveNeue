@@ -5,7 +5,7 @@ import pprint, time, math
 import pdb
 from flickr_sites import *
 from google_lookup import *
-from tripomatic_lookup import get_tripomatic_sql
+from tripomatic_lookup import *
 from mypath import find_best_path
 import pandas as pd
 import numpy as np
@@ -35,11 +35,11 @@ def map():
     # init_loc = results[0]['geometry']['location'].values()
     # print 'initial location:', request.form['startingLocation'], init_loc
 
-    init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
-    #init_loc = [40.7298482,-73.9974519] # washington square park 
+    #init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
+    init_loc = [40.7298482,-73.9974519] # washington square park 
     #init_loc = [40.7148731,-73.9591367] # williamsburg
     #init_loc = [40.7324628,-73.9900081] # third ave
-    bound_in_miles = 1
+    bound_in_miles = 1.0
     bound_in_latlng = bound_in_miles/69.
     #bound_in_latlng = 0.015
 
@@ -93,7 +93,7 @@ def map():
     print time.time() - t0, "seconds for getting centroid scores"
     #pdb.set_trace()
 
-    # get the list of attractions within the vincinity
+    # get the list of attractions within the vincinity -- TODO: get all attractions 
     t0 = time.time()
     if do_attractions:
         attractions = []
@@ -145,24 +145,12 @@ def map():
         pathlocs = []
     print 'path locations: ', pathlocs
 
-    #pdb.set_trace()
+
+    # sort by touristiness score 
+    centroids_full = centroids_full.sort('score',ascending=False)
+
     # box = [init_loc_dict['viewport']['southwest']['lat'], init_loc_dict['viewport']['southwest']['lng'],\
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs)
 
-
-# ----------------------------------------------------------------
-# gaussian weighting function for approximity to tourist location 
-def _gauss2(X, r0=(0,0), sigma=1):
-    rad_sq = _dist_squared(X,r0)
-    return math.exp(-(rad_sq)/(2*sigma**2))
-
-def _dist_squared(x,y):
-    return np.sum(np.square(np.array(x)-np.array(y)))
-
-# TODO: need to get rid of duplicate locations! take their average!!! 
-def touristy_score(location, attractions):
-    dist_weight = [ 1./att['Id'] * _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
-    for att in attractions]
-    return 100*sum(dist_weight)

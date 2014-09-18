@@ -1,5 +1,7 @@
 import pymysql as mdb
 import pdb
+import numpy as np
+import math
 
 # get the locations of tourist attractions 
 def get_tripomatic_sql(db,lat,lng,lim=0.005):
@@ -28,3 +30,17 @@ def get_tripomatic_lookup_by_bounds(db,lat,lng):
         cur.execute(cmd)
         attractions = cur.fetchall()
     return attractions
+
+# gaussian weighting function for approximity to tourist location 
+def _gauss2(X, r0=(0,0), sigma=1):
+    rad_sq = _dist_squared(X,r0)
+    return math.exp(-(rad_sq)/(2*sigma**2))
+
+def _dist_squared(x,y):
+    return np.sum(np.square(np.array(x)-np.array(y)))
+
+# TODO: need to get rid of duplicate locations! take their average!!! 
+def touristy_score(location, attractions):
+    dist_weight = [ 1./(att['Id']+1) * _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
+    for att in attractions]
+    return 100*np.sum(dist_weight)
