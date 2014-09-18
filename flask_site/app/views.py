@@ -148,7 +148,7 @@ def map():
     #pdb.set_trace()
     # box = [init_loc_dict['viewport']['southwest']['lat'], init_loc_dict['viewport']['southwest']['lng'],\
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
-    return render_template("map_basic.html", heatmaploc=heatmap, myloc=init_loc,\
+    return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs)
 
 
