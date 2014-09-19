@@ -62,13 +62,15 @@ if __name__ == '__main__':
     if dofull:
         #TODO: use the cluster labels to figure out photo affiliation, rather than restrict by radius
         radius = 0.005
+        init = True
         for cent in centroids:
             curr_loc = (cent['lat'], cent['lng'])
             idx = (photos2['Lat']-curr_loc[0])**2 + (photos2['Lng']-curr_loc[1])**2 < radius ** 2
             duration = cluster_duration(photos2, curr_loc, idx)
             print cent['index'], curr_loc
-            print '\t estimated visit duration: %s hr' % duration/3600. 
-            insert_centroids_visitdur_sql(db, cent['index'], duration)
+            print '\t estimated visit duration: %s hr' % (duration/3600.)
+            insert_centroids_visitdur_sql(db, cent['index'], duration, init)
+            init = False
 
     else: # test one point to see that the conversion works  
         curr_loc = [40.74844,-73.985664]
@@ -77,5 +79,3 @@ if __name__ == '__main__':
         duration = cluster_duration(photos2, curr_loc, idx)
         print 'estimated visit duration: %s hr' % duration/3600. 
 
-
-    
