@@ -1,7 +1,7 @@
 import pandas as pd 
 import numpy as np
 
-def cluster_duration(df, curr_loc, idx, max_hrdiff=8):
+def cluster_duration(df, curr_loc, idx, max_hrdiff=16):
     # everything in the location 
     smallset  = df.ix[idx]
     # everything outside of the location 
@@ -21,14 +21,32 @@ def cluster_duration(df, curr_loc, idx, max_hrdiff=8):
     # return the median time bounded by some reasonable values, in seconds 
     return np.median(timediff[ (timediff>0) & (timediff<np.timedelta64(max_hrdiff, 'h')) ])/np.timedelta64(1, 's') 
 
+def insert_centroids_visitdur_sql(con,idx,visitsec,init=True):
+    with con:
+        cur = con.cursor()
+        if init:
+            cur.execute("DROP TABLE IF EXISTS flickr_clusters_nyc2_visitdur")
+            cur.execute("CREATE TABLE flickr_clusters_nyc2_visitdur(ClusterId Int PRIMARY KEY, Dur INT)")
+        cmd = "INSERT INTO flickr_clusters_nyc2_visitdur (ClusterId, Dur) VALUES (%s, %s)" % (idx, visitsec)
+        cur.execute(cmd)
+
 
 if __name__ == '__main__':
     import pymysql as mdb
     from datetime import datetime
+    import pdb
+    dofull = True
+
+    # get centroids from database 
+    db = mdb.connect('localhost', 'root', '', 'insight')
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cur.execute("SELECT * FROM flickr_clusters_nyc2")
+        centroids = cur.fetchall()
 
     print 'loading photos from flickr_yahoo_nyc...'
 
-    db = mdb.connect('localhost', 'root', '', 'insight')
+    # import the full data set with redundancies and everything 
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
         cmd = "SELECT * FROM flickr_yahoo_nyc"
@@ -41,11 +59,23 @@ if __name__ == '__main__':
     
     print photos2.head()
 
-    curr_loc = [40.74844,-73.985664]
-    radius = 0.005
-    idx = (photos2['Lat']-curr_loc[0])**2 + (photos2['Lng']-curr_loc[1])**2 < radius ** 2
+    if dofull:
+        #TODO: use the cluster labels to figure out photo affiliation, rather than restrict by radius
+        radius = 0.005
+        for cent in centroids:
+            curr_loc = (cent['lat'], cent['lng'])
+            idx = (photos2['Lat']-curr_loc[0])**2 + (photos2['Lng']-curr_loc[1])**2 < radius ** 2
+            duration = cluster_duration(photos2, curr_loc, idx)
+            print cent['index'], curr_loc
+            print '\t estimated visit duration: %s hr' % duration/3600. 
+            insert_centroids_visitdur_sql(db, cent['index'], duration)
 
-    duration = cluster_duration(photos2, curr_loc, idx)
+    else: # test one point to see that the conversion works  
+        curr_loc = [40.74844,-73.985664]
+        radius = 0.005
+        idx = (photos2['Lat']-curr_loc[0])**2 + (photos2['Lng']-curr_loc[1])**2 < radius ** 2
+        duration = cluster_duration(photos2, curr_loc, idx)
+        print 'estimated visit duration: %s hr' % duration/3600. 
 
-    print 'estimated visit duration: %d hr' % duration/3600. 
+
     
