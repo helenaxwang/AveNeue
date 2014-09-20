@@ -1,7 +1,7 @@
 import pandas as pd 
 import numpy as np
 
-def cluster_duration(df, curr_loc, idx, max_hrdiff=16):
+def cluster_duration(df, curr_loc, idx, max_hrdiff=8):
     # everything in the location 
     smallset  = df.ix[idx]
     # everything outside of the location 

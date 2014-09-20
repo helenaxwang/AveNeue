@@ -28,7 +28,7 @@ def build_tree(currloc=0,locations=[0,1,2]):
 #     return rooted_paths
 
 # TODO: make this faster by using iterators effectively
-def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, time_score, interval=30):
+def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, time_score, interval=30, init_time_secs=36000):
 
 # distance_matrix: n+1 x n matrix, where rows correspond to origin, columns correspond to destination
 # duration_matrix: n+1 x n matrix
@@ -59,12 +59,13 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, ti
         # compute the cumulative value in time -- so we can figure out when we'll get to a place  
         cumdur = np.cumsum(dur_stopped[:-1]+dur_transit)
 
-        cumdur = np.append(0,cumdur)
+        cumdur = np.append(0,cumdur)[:] + init_time_secs
+
         # go to the nearest interval 
         time_idx = np.floor(cumdur/(60*interval)).astype('int')
 
         if any(time_idx > 60/interval*24-1 ):
-            print 'trip exceeds 24 hrs!'
+            #print 'trip exceeds 24 hrs!'
             continue
 
         # print path, time_idx, time_score.shape

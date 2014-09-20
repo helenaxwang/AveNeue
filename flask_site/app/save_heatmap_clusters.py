@@ -133,4 +133,3 @@ if __name__ == '__main__':
     print 'saved into flickr_clusters_nyc2 database'
     
 
-

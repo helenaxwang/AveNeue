@@ -39,7 +39,7 @@ if __name__ == '__main__':
         (json_file_name,ext) = os.path.splitext(file_name)
         json_file_name = json_file_name + '_nyc.json'
         print json_file_name
-        
+
         photo_list = load_json(os.path.join(flickr_yahoo_path,json_file_name))
         photo_list_all.extend(photo_list)
 
@@ -51,15 +51,16 @@ if __name__ == '__main__':
 
     # now find photos in the vicinity of each centroid 
     #TODO: use the cluster labels to figure out photo affiliation, rather than restrict by radius
-    radius = 0.005
+    radius = 0.002
     init = True
     for cent in centroids:
         curr_loc = (cent['lat'], cent['lng'])
         idx = (photo_df['lat']-curr_loc[0])**2 + (photo_df['lng']-curr_loc[1])**2 < radius ** 2
         smallset  = photo_df.ix[idx]
+        print cent['index'], curr_loc, smallset.shape[0]
 
         for idx, photo in smallset.iterrows():
-            print cent['index'], curr_loc, photo['id']
+            #print cent['index'], curr_loc, photo['id']
             url = "http://farm%s.static.flickr.com/%s/%s_%s_t.jpg" % (photo['farm_id'], photo['server_id'], photo['id'], photo['secret'])
             insert_centroids_thumbnail_sql(db,cent['index'],photo_id=photo['id'],url=url,init=init)
             init = False 

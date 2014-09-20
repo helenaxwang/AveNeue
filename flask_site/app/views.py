@@ -18,9 +18,10 @@ db = mdb.connect('localhost', 'root', '', 'insight')
 def landing():
     return render_template('index.html')
 
-#@app.route('/map', methods=["POST"])
-@app.route('/map')
+@app.route('/map', methods=["POST"])
+#@app.route('/map')
 def map():
+    print request.form
 
     do_heatmap = False
     heatmap_db = 'flickr_yahoo_nyc2'
@@ -30,26 +31,27 @@ def map():
         cluster_min_samples = 1000
 
     do_centroid  = 2 # 0 no, 1, compute online, 2 fetch from data base 
-    do_timescore = 2 # 1 = yes, 0 = no, 2 = constant 
+    do_timescore = 1 # 1 = yes, 0 = no, 2 = constant 
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
-    maxlocs = 9
-    nvisits = 9
+    maxlocs = 8
+    nvisits = 6
+    init_time_hr = int(request.form['startingTime'])
 
     # initialize starting location from get request
-    # print request.form
-    # results = get_google_address(request.form['startingLocation'])
-    # if len(results) > 1:
-    #     print 'Warning!!! more than one location found %d' % len(results)
-    # init_loc = results[0]['geometry']['location'].values()
-    # print 'initial location:', request.form['startingLocation'], init_loc
+    results = get_google_address(request.form['startingLocation'])
+    if len(results) > 1:
+        print 'Warning!!! more than one location found %d' % len(results)
+    init_loc = results[0]['geometry']['location'].values()
+    print 'initial location:', request.form['startingLocation'], init_loc
 
-    init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
+    #init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
     #init_loc = [40.7298482,-73.9974519] # washington square park 
     #init_loc = [40.7148731,-73.9591367] # williamsburg
     #init_loc = [40.7324628,-73.9900081] # third ave
     #init_loc = [40.766117,-73.9786236]   # columbus circle 
+    
     bound_in_miles = 1.0
     bound_in_latlng = bound_in_miles/69.
     #bound_in_latlng = 0.015
@@ -161,20 +163,33 @@ def map():
         print time.time() - t0, 'seconds for querying and building distance matrix'
 
         # find optimal path
+        t0 = time.time()
         # assumes one hour at each location, except the starting location 
-        # TODO: change duration for different location types 
-        duration_at_each_location = np.ones(len(centroids))*3600
+        duration_at_each_location = get_estimated_duration_sql(db,centroids_full['index'].values)
+        #duration_at_each_location = np.ones(len(centroids))*3600
         duration_at_each_location = np.insert(duration_at_each_location,0,0)
 
         path = find_best_path(distance_matrix,duration_matrix,nvisits,\
-            loc_duration=duration_at_each_location,time_score=time_score)
-        print 'best path found: ', path 
-        pathlocs = [ (0, init_loc) ]
+            loc_duration=duration_at_each_location,time_score=time_score,init_time_secs=init_time_hr*60*60)
+        print time.time() - t0, 'seconds. best path found: ', path
+        pathlocs = []
         for p in path:
             pathlocs.append((p[1], centroids[p[1]]))
     else:
+        duration_at_each_location = np.ones(len(centroids))*3600
         pathlocs = []
-    print 'path locations: ', pathlocs
+    print '%d path locations: ' % len(pathlocs), pathlocs
+
+    #-------------------------------------------------------------------------------
+    # get the top thumb nails
+    #-------------------------------------------------------------------------------
+    # thumb_urls = []
+    # for p in path:
+    #     thumb_urls.append(get_thumb_sql(db,centroids_full['index'][p[1]], topnum=5))
+
+    thumb_urls2 = []
+    for cid in range(centroids_full.shape[0]):
+        thumb_urls2.append(get_thumb_sql(db,centroids_full['index'][cid], topnum=5))
 
     #centroids_full = centroids_full.sort('score',ascending=False)
 
@@ -182,5 +197,27 @@ def map():
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, \
-        duration_at_each_location=duration_at_each_location[1:])
+        duration_at_each_location=duration_at_each_location[1:], thumb_urls2=thumb_urls2)
 
+
+def get_estimated_duration_sql(db,clusterId):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT * FROM flickr_clusters_nyc2_visitdur" 
+        cur.execute(cmd)
+        centroids = cur.fetchall()
+    centroids = pd.DataFrame(centroids)
+    # [centroids['Dur'][centroids['ClusterId']==d].values for d in clusterId]
+    return centroids['Dur'][clusterId].values
+
+
+def get_thumb_sql(db,clusterId,topnum=10):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT Fav, url FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
+              ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
+              WHERE (ClusterId = %s) AND (Fav > 0) ORDER BY Fav DESC LIMIT %s" % (clusterId, topnum)
+        #print cmd
+        cur.execute(cmd)
+        fav_urls = cur.fetchall()
+    return fav_urls

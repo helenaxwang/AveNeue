@@ -9,8 +9,8 @@
     <!--  <link href="static/bower_components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <link href="static/css/bootstrap-slider.css" rel="stylesheet">
     <!-- <link type="text/css" href="static/css/bootstrap.min.css" /> -->
-    <link type="text/css" href="static/css/bootstrap-timepicker.min.css" />
-
+    <!--<link type="text/css" href="static/css/bootstrap-timepicker.min.css" /> -->
+    <!-- #BABABA; -->
     <!-- Custom styles for this template -->
     <style type='text/css'>
 
@@ -31,12 +31,20 @@
       max-width: 700px;
 		}
 
+    .address {
+      padding-top: 30px;
+    }
+
+    .gobutton {
+      padding: 40px 15px;
+    }
+
 		#slider .slider-selection {
-   			background: #BABABA;
+   			background: #7e7e7e;
   		}
 
     .well {
-      background: rgba(220, 220, 220, 0.4);
+      background: rgba(220, 220, 220, 0.7);
     }
        
     </style>
@@ -63,19 +71,20 @@
         <h2 class="subtitle"> Discover the city you love </h2>        
       </div>
 
-      <div class="col-lg-6 col-lg-offset-0.5">
+      <div class="col-lg-6 col-lg-offset-0.5 well">
 
       <!-- Sliders   -->
       <!-- <div class='col-md-12'> -->
       <div class="form-group">
-         <div class="well"> 
+        <div class='col-md-12'>
+         <!-- <div class="well">  -->
           <table class="table borderless">
-            <tr>
+<!--             <tr>
               <td align="right">Off the beaten path</td>
               <td><input id="pop_req" name="pop_req" data-slider-id='slider' class='span2' type="text"
                   data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5"/>
                 </td>
-              <td> Popular </td>
+              <td> Popular </td> -->
             <tr>
               <td align="right">Take it easy</td>
               <td><input id="time_req" name="time_req" data-slider-id='slider' class='span2' type="text" 
@@ -83,21 +92,58 @@
                 </td>
               <td>See as much as possible</td>
           </table>
-        </div> 
-      <!-- </div> -->
+        </div>
 
+        <div class='col-md-3 col-md-offset-1'> Starting time </div>
+        <div class='col-md-3'>
+          <div class="form-group">
+            <select class="form-control" name="startingTime" id="startingTime">
+              <option value="6">6:00 am</option>
+              <option value="7">7:00 am</option>
+              <option value="8">8:00 am</option>
+              <option value="9">9:00 am</option>
+              <option value="10" selected="selected">10:00 am</option>
+              <option value="11">11:00 am </option>
+              <option value="12">12:00 pm </option>
+              <option value="13">1:00 pm </option>
+              <option value="14">2:00 pm </option>
+              <option value="15">3:00 pm </option>
+              <option value="16">4:00 pm </option>
+              <option value="17">5:00 pm </option>
+              <option value="18">6:00 pm </option>
+              <option value="19">7:00 pm </option>
+              <option value="20">8:00 pm </option>
+            </select>
+          </div>
+        </div>
+      <!-- </div> -->
+        <br>
         <!-- Address location  -->
         <div class='col-md-12'>
-            <div class="input-group col-sm-12">
+            <div class="input-group col-sm-12 address">
                 <input type="text" class="form-control input-lg" id="startingLocation" 
                 name="startingLocation" placeholder="Starting Location"/>
             </div>
             <br>
-<!--             <div class="input-append bootstrap-timepicker">
+
+          <!-- 
+            <div class="input-append bootstrap-timepicker">
                   <input id="timepicker1" type="text" class="input-small">
                   <span class="add-on"><i class="icon-time"></i></span>
             </div> -->
+
+
+          <!--             
+            <div class="form-group col-sm-4">
+              <label for="where"> Choose city </label>
+              <select class="form-control" name="where" id="where">
+                <option value="NYC">New York City</option>
+                <option value="SF">San Francisco</option>
+              </select>
+            </div> -->
         </div>
+
+        
 
       </div> <!-- <div class="form-group"> -->
       </div> <!-- /<div class="col-lg-6 col-lg-offset-0.5"> -->
@@ -105,7 +151,7 @@
     </div> <!-- /row  -->
     
     <!-- Go button  -->
-    <div class='col-md-12 starter-template'>
+    <div class='col-md-12 gobutton'>
       <center>
           <button type="submit" class="btn btn-primary btn-lg"> Go! </button>
      </center>
@@ -135,7 +181,7 @@
     <!-- <script type='text/javascript' src="static/bower_components/jquery/dist/jquery.min.js"></script>  -->
     <!-- <script src="static/js/bootstrap.min.js"></script> -->
     <script type='text/javascript' src="static/js/bootstrap-slider.js"></script>
-    <script type="text/javascript" src="static/js/bootstrap-timepicker.min.js"></script>
+    <!--<script type="text/javascript" src="static/js/bootstrap-timepicker.min.js"></script> -->
    
     <!-- Bootstrap core JavaScript
     ================================================== -->
@@ -168,19 +214,22 @@
 
 
 	    	$('#pop_req').slider({
-	          	formatter: function(value) {
-	            	return value;
-	          	}
+          	formatter: function(value) {
+            	return value;
+          	}
 	        });
 
         $('#time_req').slider({
-              formatter: function(value) {
-                return value;
-              }
+            formatter: function(value) {
+              return value;
+            }
           });
 
-        $('#timepicker1').timepicker({
-          });
+        // $('#timepicker1').timepicker({
+        //     formatter: function(value) {
+        //       return value;
+        //     }
+        //   });
 
     	});
     </script>
