@@ -1,25 +1,30 @@
 import pandas as pd 
 import numpy as np
 
-def cluster_duration(df, curr_loc, idx, max_hrdiff=8):
+def cluster_duration(df, curr_loc, idx, min_hrdiff=0, max_hrdiff=480):
     # everything in the location 
     smallset  = df.ix[idx]
     # everything outside of the location 
     smallset2 = df.ix[idx == False]
     # find the earliest time inside the area and outside
     # grouped by date and user_id 
-    inside_area  = smallset['date_taken'].groupby((lambda x: x.date(), smallset['user_id'])).first()
-    outside_area = smallset2['date_taken'].groupby((lambda x: x.date(), smallset2['user_id'])).first()
-    inside_area.name = 'inside_start'
-    outside_area.name = 'outside_start'
-    inside_area = inside_area.reset_index()
-    outside_area = outside_area.reset_index()
+    inside_area_group  = smallset['date_taken'].groupby((lambda x: x.date(), smallset['user_id']))
+    inside_area_first  = inside_area_group.first()
+    inside_area_last   = inside_area_group.last()
+    #outside_area = smallset2['date_taken'].groupby((lambda x: x.date(), smallset2['user_id'])).first()
+    inside_area_first.name = 'inside_start'
+    inside_area_last.name  = 'inside_end'
+    #outside_area.name = 'outside_start'
+    inside_area_first = inside_area_first.reset_index()
+    inside_area_last  = inside_area_last.reset_index()
+    #outside_area = outside_area.reset_index()
     # inner join to find that users that visit both inside and outside the area on the same day 
-    combined = pd.merge(inside_area, outside_area, how='inner', on=['level_0', 'user_id'])
+    combined = pd.merge(inside_area_first, inside_area_last, how='inner', on=['level_0', 'user_id'])
     # get the time difference
-    timediff = combined['outside_start']-combined['inside_start']
+    timediff = combined['inside_end']-combined['inside_start']
     # return the median time bounded by some reasonable values, in seconds 
-    return np.median(timediff[ (timediff>0) & (timediff<np.timedelta64(max_hrdiff, 'h')) ])/np.timedelta64(1, 's') 
+    return np.median(timediff[ (timediff>np.timedelta64(min_hrdiff, 'm')) \
+        & (timediff<np.timedelta64(max_hrdiff, 'm')) ])/np.timedelta64(1, 's') 
 
 def insert_centroids_visitdur_sql(con,idx,visitsec,init=True):
     with con:
@@ -66,7 +71,7 @@ if __name__ == '__main__':
         for cent in centroids:
             curr_loc = (cent['lat'], cent['lng'])
             idx = (photos2['Lat']-curr_loc[0])**2 + (photos2['Lng']-curr_loc[1])**2 < radius ** 2
-            duration = cluster_duration(photos2, curr_loc, idx)
+            duration = cluster_duration(photos2, curr_loc, idx, min_hrdiff=10, max_hrdiff=10*60)
             print cent['index'], curr_loc
             print '\t estimated visit duration: %s hr' % (duration/3600.)
             insert_centroids_visitdur_sql(db, cent['index'], duration, init)
