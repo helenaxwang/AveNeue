@@ -2,7 +2,7 @@
 @import url('http://fonts.googleapis.com/css?family=Lato:400,300,700,900');
 
 body {
-  background-color: #f2f2f2;
+    background-color: #f2f2f2;
     font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 18px;
@@ -32,7 +32,7 @@ h4 {
 }
 
 p {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     font-size: 16px;
 }
 
@@ -63,7 +63,8 @@ a:after {
     transition: color 0.1s ease-in, background 0.1s ease-in;
 }
 .navbar-inverse .navbar-nav > li > a {
-    color: #c6d550;
+    /*color: #c6d550;*/
+    color: #fff;
 }
 
 .alignleft {
@@ -100,7 +101,6 @@ form.signup input.form-control:focus {
 
 
 /* Nav */
-
 a.navbar-brand {
 	color: #fff !important;
 	font-weight: 900;
@@ -113,13 +113,14 @@ a.navbar-brand:hover {
 /* Header */
 
 #header {	
-	background-color: #444;
+	/*background-color: #444;*/
+  background-color: #2E2E2E;
 	background: url(../img/main-bg.jpg) no-repeat center top;
-	margin-top: -20px;
-	padding-top: 150px;
+	margin-top:  20px;
+	padding-top: 110px;
 	background-attachment: relative;
 	background-position: center center;
-	min-height: 650px;
+	min-height: 100%;
 	width: 100%;
 	
     -webkit-background-size: 100%;
@@ -147,6 +148,7 @@ a.navbar-brand:hover {
 h2.subtitle {
 	color: #fff;
 	font-size: 20px;
+  margin-left: 30px;
 }
 
 /* slide */
@@ -161,6 +163,7 @@ h2.subtitle {
   text-align: center;
   list-style: none;
 }
+
 .carousel-indicators li {
   display: inline-block;
   width: 10px;
@@ -173,6 +176,7 @@ h2.subtitle {
   border: 1px solid #fff;
   border-radius: 10px;
 }
+
 .carousel-indicators .active {
   width: 12px;
   height: 12px;
@@ -183,10 +187,12 @@ h2.subtitle {
 /* footer */
 #footer {
 	background: #fd680e;
-	padding: 20px 0 5px;
+	padding: 15px 0 0px;
+  /*margin-bottom: -20px;*/
 }
 
 p.copyright {
 	color: #fff;
 	text-align: center;
+  font-size: 12px;
 }	
