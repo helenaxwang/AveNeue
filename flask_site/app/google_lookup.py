@@ -30,6 +30,26 @@ def get_google_address(address):
         results = None
     return results
 
+# https://developers.google.com/places/documentation/search
+def get_google_places(lat,lng,radius=10):
+    google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
+    base_url = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?'
+    location_request = 'location=%s,%s' %(lat,lng)
+    radius_request = '&radius=%d' % radius
+    api_request = '&key=' + google_api_key
+    complete_url = base_url + location_request + radius_request + api_request
+    
+    googleResponse = urllib.urlopen(complete_url)
+    jsonResponse = json.loads(googleResponse.read())
+    if jsonResponse['status'] == 'OK':
+        results = jsonResponse['results']
+        print 'Google Place search, %d results returned' % len(results)
+    else:
+        print jsonResponse['status']
+        results = None
+    return results
+
+
 # format query and look up using google geocoding API
 def get_google_direction_matrix(locations,origin=None):
     google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
@@ -153,4 +173,10 @@ if __name__ == '__main__':
         print 'visiting %d locations out of %d :' % (nvisits,len(nearby_locs)+1), time.time()-t1
         #pdb.set_trace()
 
-    test2()
+    def test3():
+        location = [40.74844,-73.985664]
+        jsonResponse = get_google_places(location[0], location[1])
+        for response in jsonResponse:
+            print response['name']
+
+    test3()

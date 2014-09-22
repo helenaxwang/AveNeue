@@ -63,9 +63,10 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, ti
 
         # go to the nearest interval 
         time_idx = np.floor(cumdur/(60*interval)).astype('int')
+        time_idx = time_idx % 24
 
-        if any(time_idx > 60/interval*24-1 ):
-            #print 'trip exceeds 24 hrs!'
+        if (time_idx[-1]-time_idx[0]) > 60/interval*24-1:
+            print 'trip exceeds 24 hrs!'
             continue
 
         # print path, time_idx, time_score.shape

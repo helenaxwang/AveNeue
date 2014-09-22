@@ -45,7 +45,7 @@ def map():
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
-    maxlocs = 5#8
+    maxlocs = 8#8
     nvisits = 6
     init_time_hr = int(request.form['startingTime'])
 
@@ -191,7 +191,7 @@ def map():
     print '%d path locations: ' % len(pathlocs), pathlocs
 
     #-------------------------------------------------------------------------------
-    # get the top thumb nails
+    # get the thumb nails of locations
     #-------------------------------------------------------------------------------
     # thumb_urls = []
     # for p in path:
@@ -201,6 +201,17 @@ def map():
     for cid in range(centroids_full.shape[0]):
         thumb_urls2.append(get_thumb_sql(db,centroids_full['index'][cid], topnum=5))
 
+    #-------------------------------------------------------------------------------
+    # get google places for each location 
+    #-------------------------------------------------------------------------------
+    googlePlaces = []
+    for loc in pathlocs:
+        places = get_google_places(loc[1][0], loc[1][1], radius=50)
+        #places_formated = []
+        #for pl in places[:5]: # save the top five
+        #    places_formated.append({'name': pl['name'].encode('ascii'), 'icon': pl['icon']})
+        googlePlaces.append(places)
+
     #centroids_full = centroids_full.sort('score',ascending=False)
 
     # box = [init_loc_dict['viewport']['southwest']['lat'], init_loc_dict['viewport']['southwest']['lng'],\
@@ -208,7 +219,7 @@ def map():
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, \
         duration_at_each_location=duration_at_each_location[1:], thumb_urls2=thumb_urls2, \
-        time_score=centroids_full[hour_keys].T)
+        time_score=centroids_full[hour_keys].T, google_places=googlePlaces)
 
 
 def get_estimated_duration_sql(db,clusterId):

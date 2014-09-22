@@ -35,6 +35,10 @@
     padding-top: 60px;
     padding-bottom: 20px;
   }
+
+  th {
+    text-align:center
+  }
   </style>
   <link href="static/css/d3style.css" rel="stylesheet">
   <!-- Bootstrap core CSS -->
@@ -48,13 +52,13 @@
   <!-- <div id="panel">
     <button onclick="toggleHeatmap()">Toggle Heatmap</button>
   </div> -->
-  <div class="col-md-12 col-md-offset-0.5 ">
+  <div class="col-md-10 col-md-offset-1 ">
     <h2> Suggested Itinerary </h2>
-    <table class="table table-hover">
-     
+    <table class="table table-hover" id="itinerary"> 
       <tr>
-        <th align="center">Number</th>
-        <th align="center">Estimated Duration</th>
+        <th> </th>
+        <th> Nearby Places </th>
+        <th> Estimated Duration</th>
       </tr>
       <!--
       {% for loc in attractions %}
@@ -64,16 +68,11 @@
       <!--       
       {% for index, loc in centroids.iterrows() %}
       <tr><td>{{ index }}</td><td>{{ loc['score'] }}</td></tr>
+      td>{{ centroids['score'][loc[0]] }}</td>
       {% endfor %} -->
-      {% for loc in path_locations %}
-      <tr>
-        <!-- <td>{{ centroids['score'][loc[0]] }}</td> -->
-        <td align="center"> {{ loop.index }}</td>
-        <td align="center">{{ '%0.1f' % (duration_at_each_location[loc[0]] / 3600) | float }} hrs </td>
-      </tr>
-      {% endfor %}
-      <tr><td id ="travel_info" colspan=2></td></tr>
     </table>
+    <div id ="travel_info" colspan=2></div>
+    <br>
   </div> <!-- <div class="col-md-5 col-md-offset-0.5 "> -->
 
 <!-- </div>  -->
@@ -114,6 +113,8 @@
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
 <script src="http://d3js.org/d3.v3.js"></script>
 
+
+<!-- Google maps script  -->
 <script>
 
 var map, infoWindow; 
@@ -147,8 +148,26 @@ var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png'
 'blue_MarkerD.png', 'blue_MarkerE.png', 'blue_MarkerF.png', 'blue_MarkerG.png', 
 'blue_MarkerH.png', 'blue_MarkerI.png', 'blue_MarkerJ.png', 'blue_MarkerK.png']
 
+// show iterary table 
 
-// Initialize plotting 
+locationLabels = ['A','B','C','D','E','F','G']
+{% for loc in path_locations %}  
+  imgsource  = '../static/images/mapmarkers/blue_Marker'.concat(locationLabels.shift()).concat('.png')
+  //console.log("{{  google_places[ loop.index-1  ][ 1 ]['name'] }}")
+  var location_text = '<img width="20" src="' + "{{  google_places[ loop.index-1  ][ 0 ]['icon'] }}" + '">'
+                    + "{{  google_places[ loop.index-1  ][ 0 ]['name'] }} &nbsp &nbsp " 
+                    + '<img width="20" src="' + "{{  google_places[ loop.index-1  ][ 1 ]['icon'] }}" + '">'
+                    + "{{  google_places[ loop.index-1  ][ 1 ]['name'] }} " 
+                               
+  //console.log(location_text)
+  $("#itinerary")
+    .append('<tr><td align="center">' + '<img src="' + imgsource + '">' + '</td><td align="left">' + 
+      location_text + '</td> <td align="center">' + 
+    {{ '%0.1f' % (duration_at_each_location[loc[0]] / 3600) | float }} + 'hrs </td></tr>');
+{% endfor %}
+
+
+// Initialize plotting for google maps 
 function initialize() {
   directionsDisplay = new google.maps.DirectionsRenderer({suppressMarkers:true});
   infoWindow = new google.maps.InfoWindow();
@@ -372,7 +391,7 @@ google.maps.event.addDomListener(window, 'load', initialize);
 //console.log(data)
 
 // Now we draw things!! 
-var margin = {top: 40, right: 100, bottom: 40, left: 40},
+var margin = {top: 40, right: 100, bottom: 20, left: 20},
     width  = 600 - margin.left - margin.right,
     height = 300 - margin.top - margin.bottom;
 
@@ -442,7 +461,8 @@ function plotd3 (data) {
         .attr("r", 5);
 
   focus.append("text")
-        .attr("x", 9)
+        .attr("x", -20)
+        .attr("y", -20)
         .attr("dy", ".35em");
 
   svg.append("rect")
