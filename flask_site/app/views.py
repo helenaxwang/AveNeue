@@ -18,6 +18,16 @@ db = mdb.connect('localhost', 'root', '', 'insight')
 def landing():
     return render_template('index.html')
 
+@app.route('/d3')
+def testd3():
+    centroids_full = get_centroids_timescore_sql(db,[40.74844,-73.985664],5)
+    centroids_full = pd.DataFrame(centroids_full)
+    hour_keys = [str(x) for x in  np.linspace(0,24,49)]
+    hour_keys = hour_keys[:-1]
+    time_score = centroids_full.ix[:2][hour_keys].T
+    return render_template('testd3.html',time_score=time_score)
+
+# map page 
 @app.route('/map', methods=["POST"])
 #@app.route('/map')
 def map():
@@ -35,7 +45,7 @@ def map():
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
-    maxlocs = 8
+    maxlocs = 5#8
     nvisits = 6
     init_time_hr = int(request.form['startingTime'])
 
@@ -197,7 +207,8 @@ def map():
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, \
-        duration_at_each_location=duration_at_each_location[1:], thumb_urls2=thumb_urls2)
+        duration_at_each_location=duration_at_each_location[1:], thumb_urls2=thumb_urls2, \
+        time_score=centroids_full[hour_keys].T)
 
 
 def get_estimated_duration_sql(db,clusterId):
