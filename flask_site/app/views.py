@@ -45,9 +45,10 @@ def map():
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
-    maxlocs = 6#8
-    nvisits = 6
+    maxlocs = 8
     init_time_hr = int(request.form['startingTime'])
+    time_req = int(request.form['time_req'])
+    nvisits = time_req + 2; # tailor number of visits per location 
 
     # initialize starting location from get request
     results = get_google_address(request.form['startingLocation'])
@@ -174,18 +175,20 @@ def map():
 
         # find optimal path
         t0 = time.time()
-        # assumes one hour at each location, except the starting location 
         duration_at_each_location = get_estimated_duration_sql(db,centroids_full['index'].values)
         #duration_at_each_location = np.ones(len(centroids))*3600
         duration_at_each_location = np.insert(duration_at_each_location,0,0)
+        duration_at_each_location = duration_at_each_location * (2./time_req+0.5)
+        print 'duration multiplier = %s' % (2./time_req+0.5)
 
-        path = find_best_path(distance_matrix,duration_matrix,nvisits,\
+        path, path_time_idx = find_best_path(distance_matrix,duration_matrix,nvisits,\
             loc_duration=duration_at_each_location,time_score=time_score,init_time_secs=init_time_hr*60*60)
         print time.time() - t0, 'seconds. best path found: ', path
         pathlocs = []
         for p in path:
             pathlocs.append((p[1], centroids[p[1]]))
     else:
+        # assumes one hour at each location, except the starting location 
         duration_at_each_location = np.ones(len(centroids))*3600
         pathlocs = []
     print '%d path locations: ' % len(pathlocs), pathlocs
@@ -199,7 +202,7 @@ def map():
 
     thumb_urls2 = []
     for cid in range(centroids_full.shape[0]):
-        thumb_urls2.append(get_thumb_sql(db,centroids_full['index'][cid], topnum=5))
+        thumb_urls2.append(get_thumb_sql(db,centroids_full['index'][cid], topnum=4))
 
     #-------------------------------------------------------------------------------
     # get google places for each location 
@@ -209,15 +212,15 @@ def map():
         places = get_google_places(loc[1][0], loc[1][1], radius=50)
         places_formated = []
         for pl in places[ : min(5,len(places)) ]: # save the top five
-           places_formated.append({'name': pl['name'], 'icon': pl['icon']})
+           places_formated.append({'name': pl['name'], 'icon': pl['icon'], \
+           'lat': pl['geometry']['location']['lat'], 'lng': pl['geometry']['location']['lng']})
         googlePlaces.append(places_formated)
-
     #centroids_full = centroids_full.sort('score',ascending=False)
 
     # box = [init_loc_dict['viewport']['southwest']['lat'], init_loc_dict['viewport']['southwest']['lng'],\
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
-        centroids=centroids_full, attractions=attractions, path_locations=pathlocs, \
+        centroids=centroids_full, attractions=attractions, path_locations=pathlocs, path_time_idx=path_time_idx, \
         duration_at_each_location=duration_at_each_location[1:], thumb_urls2=thumb_urls2, \
         time_score=centroids_full[hour_keys].T, google_places=googlePlaces)
 

@@ -47,6 +47,11 @@ if __name__ == '__main__':
     #normalizer = pd.Series(np.ones(48),index=temp2.index)
     hour_all_nyc, photos_nyc = get_photo_density(photos2.ix[isnyc], interval=30, drop_duplicates=True)
     hour_all_out, photos_out = get_photo_density(photos2.ix[isnyc==False], interval=30, drop_duplicates=True)
+    hour_all, photo_df = get_photo_density(photos2, interval=30, drop_duplicates=True)
+    photos_nyc_n = photos_nyc.shape[0]
+    photos_out_n = photos_out.shape[0]
+    photos_n = photo_df.shape[0]
+    print photos_nyc_n, photos_out_n
 
     # load centroids
     db = mdb.connect('localhost', 'root', '', 'insight')
@@ -55,7 +60,8 @@ if __name__ == '__main__':
         cur.execute("SELECT * FROM flickr_clusters_nyc2")
         centroids = cur.fetchall()
 
-    # for each centroid, find the time course for both nyc users and non nyc users 
+    # for each centroid, find the time course for both nyc users and non nyc users
+    # TODO: use cluster id rather than radius criterion 
     radius = 0.005
     init = True
     hour_score_n_nyc = []
@@ -74,8 +80,10 @@ if __name__ == '__main__':
         hour_score_n_nyc.append(sum(idx_nyc))
         hour_score_n_out.append(sum(idx_out))
         # get the hourly rate 
-        hour_score_nyc = compute_photo_timescore(photos_nyc_cent, hour_all_nyc, smooth=3)
-        hour_score_out = compute_photo_timescore(photos_out_cent, hour_all_out, smooth=3)
+        #hour_score_nyc = compute_photo_timescore(photos_nyc_cent, hour_all_nyc, smooth=3)
+        #hour_score_out = compute_photo_timescore(photos_out_cent, hour_all_out, smooth=3)
+        hour_score_nyc = compute_photo_timescore(photos_nyc_cent, hour_all, smooth=3)/(photos_nyc_n/float(photos_n))
+        hour_score_out = compute_photo_timescore(photos_out_cent, hour_all, smooth=3)/(photos_out_n/float(photos_n))
         # append to list 
         hour_score_list_nyc.append(hour_score_nyc)
         hour_score_list_out.append(hour_score_out)

@@ -6,7 +6,7 @@
     html, body, #map-canvas {
       height: 95%;
       margin: 0px;
-      padding: 30px
+      padding: 20px
     }
 /*    #panel {
       position: absolute;
@@ -19,20 +19,18 @@
       border: 1px solid #999;
     }*/
   .fill { 
-    min-height: 400px;
+    min-height: 600px;
     height: 100%;
-  }
-
-  .subcontainer {
-    height: 150px;
   }
 
   .thumb {
     margin: 2px 2px 2px 2px;
+    width: 220px;
+    height:150px;
   }
 
   body {
-    padding-top: 60px;
+    margin-top: 50px;
     padding-bottom: 20px;
   }
 
@@ -57,13 +55,13 @@
 </div>
 
 <!-- Interactive stuff for canvas -->
-<div class="container col-md-6" style="position:relative;">
-  <div class="subcontainer">
-    <h3> Favorite pictures </h3>
+<div class="container col-md-6" style="position:relative;margin-top:-10px;">
+  <div class="container col-md-12" style="height:380px;">
+    <h5> Favorite pictures </h5>
     <div id="thumbs"> </div> 
   </div>
   <div class="subcontainer">
-    <h3> Interest over the course of the day </h3>
+    <h5> Interest over the course of the day </h5>
     <div id="timegraph"></div>
   </div>
 </div>
@@ -72,11 +70,6 @@
 <div class="col-md-10 col-md-offset-1 ">
   <h2> Suggested Itinerary </h2>
   <table class="table table-hover" id="itinerary"> 
-    <tr>
-      <th> </th>
-      <th> Nearby Places </th>
-      <th> Estimated Duration</th>
-    </tr>
     <!--
     {% for loc in attractions %}
     <tr><td>{{ loc['Name'] }}</td><td>{{ loc['Id']}}</td><td>{{ loc['Address']}}</td></tr>
@@ -148,8 +141,14 @@ var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png'
 'blue_MarkerD.png', 'blue_MarkerE.png', 'blue_MarkerF.png', 'blue_MarkerG.png', 
 'blue_MarkerH.png', 'blue_MarkerI.png', 'blue_MarkerJ.png', 'blue_MarkerK.png']
 
-// show iterary table 
+var timeString = ['12 am', '12:30 am', '1 am', '1:30 am', '2 am', '2:30 am', '3 am', '3:30 am', 
+      '4 am', '4:30 am', '5 am', '5:30 am', '6 am', '6:30 am', '7 am', '7:30 am', 
+      '8 am', '8:30 am', '9 am', '9:30 am', '10 am', '10:30 am', '11 am', '11:30 am', 
+      '12 pm', '12:30 pm', '1 pm', '1:30 pm', '2 pm', '2:30 pm', '3 pm', '3:30 pm', 
+      '4 pm', '4:30 pm', '5 pm', '5:30 pm', '6 pm', '6:30 pm', '7 pm', '7:30 pm',
+      '8 pm', '8:30 pm', '9 pm', '9:30 pm', '10 pm', '10:30 pm', '11 pm', '11:30 pm'];
 
+// show iterary table 
 locationLabels = ['A','B','C','D','E','F','G']
 {% for loc in path_locations %}  
   imgsource  = '../static/images/mapmarkers/blue_Marker'.concat(locationLabels.shift()).concat('.png')
@@ -159,16 +158,26 @@ locationLabels = ['A','B','C','D','E','F','G']
   // get the google places found for each location 
   var location_text = ''
   {% for subloc in places %}
-    location_text = location_text +
+      location_text = location_text +
                   '<img width="20" src="' + "{{  subloc['icon'] }}" + '">'
                   + "{{  subloc['name'] }} &nbsp &nbsp " 
   {% endfor %}
   //console.log(location_text) 
+  // add transition to row 
+  // $("#itinerary").append('<tr><td></td><td> Leave at ' + 
+  //   timeString[ {{ path_time_idx[loop.index-1] }} ] + 
+  //   '</td><td></td><td> Travel for ' +
+  //   '</td></tr>');
+  console.log( timeString[ {{ path_time_idx[loop.index-1] }} ] )
 
+  // add location to row 
   $("#itinerary")
-    .append('<tr><td align="center">' + '<img src="' + imgsource + '">' + '</td><td align="left">' + 
-      location_text + '</td> <td align="center">' + 
-    {{ '%0.1f' % (duration_at_each_location[loc[0]] / 3600) | float }} + 'hrs </td></tr>');
+    .append('<tr><td align="center">' + '<img src="' + imgsource + '">' + 
+      '</td><td class="col-md-2"> Arrive at ' + timeString[{{ path_time_idx[loop.index] }}] + 
+      '</td><td align="right"> Nearby Places: </td> <td class="col-md-7">' + 
+      location_text + '</td> <td class="col-md-2"> Stay for ' + 
+    {{ '%0.1f' % (duration_at_each_location[loc[0]] / 3600) | float }} + ' hrs </td></tr>');
+
 {% endfor %}
 
 
@@ -195,6 +204,7 @@ function initialize() {
   }
   addPathLocations()
   calcRoute()
+  //addCentroidNearbyPlaces()
 }
 
 // set heat map 
@@ -240,6 +250,38 @@ function addCentroidMarkers(){
     //   );
     //infoWindow.open(map,marker);
     //marker.setMap(map);
+  {% endfor %}
+}
+
+// set surrounding locations for each location 
+function addCentroidNearbyPlaces(){
+  // for each location 
+  {% for loc in path_locations %} 
+    {% set places = google_places[ loop.index-1] %}
+    // for each of the nearby sites 
+    {% for subloc in places %}
+      
+      coordinate = new google.maps.LatLng({{ subloc['lat'] }},{{ subloc['lng'] }})
+      //console.log( {{ subloc['lat'] }} )
+      // add marker 
+      var gpmarker = new google.maps.MarkerImage(
+        "{{ subloc['icon'] }}", null, null, null, new google.maps.Size(20, 20));
+
+      var marker = new google.maps.Marker({
+        position: coordinate,
+        map: map,
+        icon: gpmarker,
+      });
+
+      // call back for popup windows
+      google.maps.event.addListener(marker, 'click', function(event) {
+         infoWindow.setPosition(coordinate);
+         infoWindow.setContent( String( "{{  subloc['name'] }}" ) );
+         infoWindow.open(map,this);
+      });
+      //marker.setMap(map)
+
+    {% endfor %}
   {% endfor %}
 }
 
@@ -299,8 +341,8 @@ function addPathLocations(){
     google.maps.event.addListener(marker, 'click', function(event) {
       // generate the top 5 flickr thumb nails 
       $("#thumbs").empty();
-      for (i = 0; i < 5; i++){
-        var thumb_src = '<a href="#"><img class="thumb" src="' + thumb_urls[{{ loc[0] }}][i] + '"></a>'
+      for (i = 0; i < 4; i++){
+        var thumb_src = '<img class="thumb" src="' + thumb_urls[{{ loc[0] }}][i] + '">'
         //console.log(thumb_src)
         $('#thumbs').append(thumb_src);
       }
@@ -376,12 +418,9 @@ function toggleHeatmap() {
 }
 google.maps.event.addDomListener(window, 'load', initialize);
 
-</script>
 
-
-<!-- ===================================================================== -->
-<!-- d3 scripts  -->
-<script>
+// --------- d3 scripts ------------------------
+// ---------------------------------------------
 // http://bl.ocks.org/zoopoetics/7684278
 // http://bl.ocks.org/mbostock/3902569
 // http://bl.ocks.org/benjchristensen/2579599
@@ -396,9 +435,9 @@ google.maps.event.addDomListener(window, 'load', initialize);
 //console.log(data)
 
 // Now we draw things!! 
-var margin = {top: 40, right: 100, bottom: 20, left: 20},
-    width  = 500 - margin.left - margin.right,
-    height = 200 - margin.top - margin.bottom;
+var margin = {top: 10, right: 100, bottom: 20, left: 50},
+    width  = 400 - margin.left - margin.right,
+    height = 180 - margin.top - margin.bottom;
 
 var x = d3.scale.linear()
     .range([0, width]);
@@ -419,13 +458,6 @@ var yAxis = d3.svg.axis()
     .tickValues([1])
     .tickFormat("")
     .orient("left");
-
-var timeString = ['12 am', '12:30 am', '1 am', '1:30 am', '2 am', '2:30 am', '3 am', '3:30 am', 
-      '4 am', '4:30 am', '5 am', '5:30 am', '6 am', '6:30 am', '7 am', '7:30 am', 
-      '8 am', '8:30 am', '9 am', '9:30 am', '10 am', '10:30 am', '11 am', '11:30 am', 
-      '12 pm', '12:30 pm', '1 pm', '1:30 pm', '2 pm', '2:30 pm', '3 pm', '3:30 pm', 
-      '4 pm', '4:30 pm', '5 pm', '5:30 pm', '6 pm', '6:30 pm', '7 pm', '7:30 pm',
-      '8 pm', '8:30 pm', '9 pm', '9:30 pm', '10 pm', '10:30 pm', '11 pm', '11:30 pm'];
 
 function plotd3 (data) {
 
@@ -467,7 +499,7 @@ function plotd3 (data) {
 
   focus.append("text")
         .attr("x", -20)
-        .attr("y", -20)
+        .attr("y", 20)
         .attr("dy", ".35em");
 
   svg.append("rect")
@@ -489,7 +521,8 @@ function plotd3 (data) {
         d1 = data[i],
         d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
     focus.attr("transform", "translate(" + x(d.hour) + "," + y(d.score) + ")");
-    focus.select("text").text(timeString[d.index] + ": " + d.score.toFixed(1));
+    focus.select("text").text(timeString[d.index] + ": " + d.score.toFixed(1))
+    .attr("font-family", "sans-serif").attr("font-size", "14px");
   }
 }
 

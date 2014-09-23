@@ -8,7 +8,7 @@ import pdb
 
 def get_clusters_kmeans(photos):
     from sklearn.cluster import KMeans
-    
+
     photo_df = pd.DataFrame(photos)
     data = photo_df[['lat','lng']].values
     estimator = KMeans(init='k-means++', n_clusters=10, n_init=10)
@@ -131,9 +131,10 @@ def _movingaverage(interval, window_size):
     return convolve(interval, window, mode='wrap')
 
 # computes the time score 
-def compute_photo_timescore(photo_df, overall_density, smooth=3):
+def compute_photo_timescore(photo_df, overall_density=None,smooth=3):
     hour_loc, pf = get_photo_density(photo_df, drop_duplicates=False) 
-    hour_loc = hour_loc / overall_density
+    if overall_density is not None:
+        hour_loc = hour_loc / overall_density
     if smooth:
         hour_loc = _movingaverage(hour_loc,3)
     return hour_loc

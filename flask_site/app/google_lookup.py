@@ -167,7 +167,7 @@ if __name__ == '__main__':
         # Then, find the best paths given direction matrix, time at each place, and time score
         t1 = time.time()
         nvisits = 5
-        path = find_best_path(distance_matrix,duration_matrix,nvisits,\
+        path, time_idx = find_best_path(distance_matrix,duration_matrix,nvisits,\
             loc_duration=duration_at_each_location,time_score=time_score)
         print path
         print 'visiting %d locations out of %d :' % (nvisits,len(nearby_locs)+1), time.time()-t1
