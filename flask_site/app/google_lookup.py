@@ -46,7 +46,7 @@ def get_google_places(lat,lng,radius=10):
         print 'Google Place search, %d results returned' % len(results)
     else:
         print jsonResponse['status']
-        results = None
+        results = []
     return results
 
 

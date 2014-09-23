@@ -153,13 +153,18 @@ var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png'
 locationLabels = ['A','B','C','D','E','F','G']
 {% for loc in path_locations %}  
   imgsource  = '../static/images/mapmarkers/blue_Marker'.concat(locationLabels.shift()).concat('.png')
-  //console.log("{{  google_places[ loop.index-1  ][ 1 ]['name'] }}")
-  var location_text = '<img width="20" src="' + "{{  google_places[ loop.index-1  ][ 0 ]['icon'] }}" + '">'
-                    + "{{  google_places[ loop.index-1  ][ 0 ]['name'] }} &nbsp &nbsp " 
-                    + '<img width="20" src="' + "{{  google_places[ loop.index-1  ][ 1 ]['icon'] }}" + '">'
-                    + "{{  google_places[ loop.index-1  ][ 1 ]['name'] }} " 
-                               
-  //console.log(location_text)
+
+  {% set places = google_places[ loop.index-1] %}
+
+  // get the google places found for each location 
+  var location_text = ''
+  {% for subloc in places %}
+    location_text = location_text +
+                  '<img width="20" src="' + "{{  subloc['icon'] }}" + '">'
+                  + "{{  subloc['name'] }} &nbsp &nbsp " 
+  {% endfor %}
+  //console.log(location_text) 
+
   $("#itinerary")
     .append('<tr><td align="center">' + '<img src="' + imgsource + '">' + '</td><td align="left">' + 
       location_text + '</td> <td align="center">' + 

@@ -207,10 +207,10 @@ def map():
     googlePlaces = []
     for loc in pathlocs:
         places = get_google_places(loc[1][0], loc[1][1], radius=50)
-        #places_formated = []
-        #for pl in places[:5]: # save the top five
-        #    places_formated.append({'name': pl['name'].encode('ascii'), 'icon': pl['icon']})
-        googlePlaces.append(places)
+        places_formated = []
+        for pl in places[ : min(5,len(places)) ]: # save the top five
+           places_formated.append({'name': pl['name'], 'icon': pl['icon']})
+        googlePlaces.append(places_formated)
 
     #centroids_full = centroids_full.sort('score',ascending=False)
 

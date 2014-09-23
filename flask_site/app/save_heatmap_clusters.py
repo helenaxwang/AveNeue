@@ -11,12 +11,12 @@ def insert_flickr_sql_df(con,df,init=True):
 
 
 # inserts per hour score, plus longitutde and latitude 
-def insert_centroids_sql_df(con,df,init=True):
+def insert_centroids_sql_df(con,df,init=True,name='flickr_clusters_nyc2'):
     if init:
         if_exists = 'replace'
     else:
         if_exists = 'append'
-    df.to_sql(name='flickr_clusters_nyc2',con=con,flavor='mysql',if_exists=if_exists)
+    df.to_sql(name=name,con=con,flavor='mysql',if_exists=if_exists)
 
 
 def insert_centroids_sql(con,centroids,init=True):

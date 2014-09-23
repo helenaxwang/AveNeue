@@ -59,8 +59,9 @@ if __name__ == '__main__':
         smallset  = photo_df.ix[idx]
         print cent['index'], curr_loc, smallset.shape[0]
 
+        #t = thumb, s=small square, m = small 
         for idx, photo in smallset.iterrows():
             #print cent['index'], curr_loc, photo['id']
-            url = "http://farm%s.static.flickr.com/%s/%s_%s_t.jpg" % (photo['farm_id'], photo['server_id'], photo['id'], photo['secret'])
+            url = "http://farm%s.static.flickr.com/%s/%s_%s_m.jpg" % (photo['farm_id'], photo['server_id'], photo['id'], photo['secret'])
             insert_centroids_thumbnail_sql(db,cent['index'],photo_id=photo['id'],url=url,init=init)
             init = False 
