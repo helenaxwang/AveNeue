@@ -4,11 +4,11 @@ import pymysql as mdb
 from datetime import datetime
 #import matplotlib.pyplot as plt
 #import json
-from sklearn.cluster import KMeans
-from sklearn.cluster import DBSCAN
 import pdb
 
 def get_clusters_kmeans(photos):
+    from sklearn.cluster import KMeans
+    
     photo_df = pd.DataFrame(photos)
     data = photo_df[['lat','lng']].values
     estimator = KMeans(init='k-means++', n_clusters=10, n_init=10)
@@ -18,6 +18,8 @@ def get_clusters_kmeans(photos):
 
 
 def get_clusters_dbscan(photos,eps=0.0005,min_samples=1000):
+    from sklearn.cluster import DBSCAN
+
     photo_df = pd.DataFrame(photos)
     data = photo_df[['lat','lng']].values
     estimator = DBSCAN(eps=eps, min_samples=min_samples)
