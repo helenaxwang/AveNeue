@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis .minor {
+    stroke-opacity: .5;
+  }
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: 2px;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus circle {
+  fill: none;
+  stroke: steelblue;
+  stroke-width: '3px';
+}
+
+</style>
+
+<link href="static/css/bootstrap.css" rel="stylesheet">
+<link href="static/css/bootstrap.min.css" rel="stylesheet">
+
+<body>
+
+<div id="timegraph" class="col-md-6" style="position:absolute;top:0px;left:0; float:left;"></div>
+
+<script src="http://d3js.org/d3.v3.js"></script>
+
+<script>
+// http://bl.ocks.org/zoopoetics/7684278
+// http://bl.ocks.org/mbostock/3902569
+
+var margin = {top: 20, right: 150, bottom: 20, left: 0},
+    width  = 400 - margin.left - margin.right,
+    height = 300 - margin.top - margin.bottom;
+
+var x = d3.scale.linear()
+    .range([0, width]);
+
+var y = d3.scale.linear()
+    .range([height, 0]);
+
+var xAxis = d3.svg.axis()
+    .scale(x)
+    .orient("bottom");
+
+var yAxis = d3.svg.axis()
+    .scale(y)
+    //.ticks(10)
+    .orient("left");
+
+var line = d3.svg.line()
+    .x(function(d) { return x(d.hour); })
+    .y(function(d) { return y(d.score); });
+
+var svg = d3.select("#timegraph").append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+var data = []
+{% for index, loc in time_score.iterrows() %}
+  var new_vals = { hour: {{ index }}, score: {{ loc[0]*100 }} };
+  //console.log([{{ index }}, {{ loc[0] }}])
+  data.push(new_vals);
+{% endfor %}
+
+// var data = [
+//     {hour:0,score:53.98},
+//     {hour:1,score:67.00},
+//     {hour:2,score:89.70},
+//     {hour:3,score:99.00},
+//     {hour:4,score:99.00},
+// ];
+
+x.domain(d3.extent(data, function(d) { return d.hour; }));
+//y.domain(d3.extent(data, function(d) { return d.score; }));
+y.domain([0, d3.max(data, function(d) { return d.score; })]);
+
+svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+svg.append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(-10,0)")
+    .call(yAxis);
+  // .append("text")
+  //   .attr("transform", "rotate(-90)")
+  //   .attr("y", 6)
+  //   .style("text-anchor", "end")
+  //   .text("Hour Score");
+
+svg.append("path")
+    .datum(data)
+    .attr("class", "line")
+    .attr("d", line);
+
+var focus = svg.append("g")
+      .attr("class", "focus")
+      .style("display", "none");
+
+focus.append("circle")
+      .attr("r", 5);
+
+focus.append("text")
+      .attr("x", 9)
+      .attr("dy", ".35em");
+
+svg.append("rect")
+      .attr("class", "overlay")
+      .attr("width", width)
+      .attr("height", height)
+      .on("mouseover", function() { focus.style("display", null); })
+      .on("mouseout", function() { focus.style("display", "none"); })
+      .on("mousemove", mousemove);
+
+var bisect = d3.bisector(function(datum) {
+  return datum.hour;
+}).left;
+
+function mousemove() {
+  var x0 = x.invert(d3.mouse(this)[0]),
+      i = bisect(data, x0, 1),
+      d0 = data[i - 1],
+      d1 = data[i],
+      d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
+  focus.attr("transform", "translate(" + x(d.hour) + "," + y(d.score) + ")");
+  focus.select("text").text("hour: " + d.hour + ": " + d.score.toFixed(1));
+}
+
+</script>
