@@ -263,7 +263,6 @@ def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
               WHERE (ClusterId = %s) AND (Fav > 0) \
               AND HOUR(date_taken) = %s \
               ORDER BY Fav DESC LIMIT %s" % (clusterId, hour, topnum)
-        #print cmd
         cur.execute(cmd)
         fav_urls = cur.fetchall()
     return fav_urls
