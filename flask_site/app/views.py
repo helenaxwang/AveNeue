@@ -198,13 +198,12 @@ def map():
     #-------------------------------------------------------------------------------
     # get the thumb nails of locations
     #-------------------------------------------------------------------------------
-    # thumb_urls = []
-    # for p in path:
-    #     thumb_urls.append(get_thumb_sql(db,centroids_full['index'][p[1]], topnum=5))
-
-    thumb_urls2 = []
-    for cid in range(centroids_full.shape[0]):
-        thumb_urls2.append(get_thumb_sql(db,centroids_full['index'][cid], topnum=4))
+    thumb_urls = []
+    hour_idx = np.linspace(0,24,49)[:-1]
+    for idx,p in enumerate(path):
+        #thumb_urls.append(get_thumb_sql(db,centroids_full['index'][p[1]], topnum=5))
+        thumb_urls.append(get_thumb_byhour_sql(db,centroids_full['index'][p[1]], \
+            int(hour_idx[path_time_idx[idx]]), topnum=4))
 
     #-------------------------------------------------------------------------------
     # get google places for each location 
@@ -228,7 +227,7 @@ def map():
 
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, path_time_idx=path_time_idx, \
-        duration_at_each_location=duration_at_each_location[1:], thumb_urls2=thumb_urls2, \
+        duration_at_each_location=duration_at_each_location[1:], thumb_urls=thumb_urls, \
         time_score=centroids_full[hour_keys].T, google_places=googlePlaces)
 
 
@@ -249,6 +248,21 @@ def get_thumb_sql(db,clusterId,topnum=10):
         cmd = "SELECT Fav, url FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
               ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
               WHERE (ClusterId = %s) AND (Fav > 0) ORDER BY Fav DESC LIMIT %s" % (clusterId, topnum)
+        #print cmd
+        cur.execute(cmd)
+        fav_urls = cur.fetchall()
+    return fav_urls
+
+def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT Fav, url FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
+              ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
+              JOIN flickr_yahoo_nyc \
+              ON flickr_clusters_nyc2_thumb.Id = flickr_yahoo_nyc.Id \
+              WHERE (ClusterId = %s) AND (Fav > 0) \
+              AND HOUR(date_taken) = %s \
+              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour, topnum)
         #print cmd
         cur.execute(cmd)
         fav_urls = cur.fetchall()
