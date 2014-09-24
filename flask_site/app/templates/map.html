@@ -124,7 +124,7 @@ var heatMapData = []
 
 // get thumb urls and put into javascript array 
 var thumb_urls = []
-{% for urls in thumb_urls2 %}
+{% for urls in thumb_urls %}
   var u = []
   {% for thumb in urls %}
     u.push("{{ thumb['url'] }}"); 
@@ -337,6 +337,9 @@ function addPathLocations(){
       icon: '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}]),
     });
     
+    // save the outer loop index 
+    {% set outerloopidx = loop.index-1 %}
+
     // defining what happens when you click on a marker 
     google.maps.event.addListener(marker, 'click', function(event) {
       // add google map marker
@@ -344,11 +347,11 @@ function addPathLocations(){
       $("#show_mapmarker").append('<img width="20" src="' + 
         '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}])
         + '">')
-
       // generate the top 5 flickr thumb nails 
       $("#thumbs").empty();
       for (i = 0; i < 4; i++){
-        var thumb_src = '<img class="thumb" src="' + thumb_urls[{{ loc[0] }}][i] + '">'
+        // var thumb_src = '<img class="thumb" src="' + thumb_urls[{{ loc[0] }}][i] + '">'
+        var thumb_src = '<img class="thumb" src="' + thumb_urls[{{ outerloopidx }}][i] + '">'
         //console.log(thumb_src)
         $('#thumbs').append(thumb_src);
       }
