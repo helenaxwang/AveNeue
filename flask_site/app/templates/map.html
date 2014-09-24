@@ -57,7 +57,7 @@
 <!-- Interactive stuff for canvas -->
 <div class="container col-md-6" style="position:relative;margin-top:-10px;">
   <div class="container col-md-12" style="height:380px;">
-    <h5> Top favorite pictures </h5>
+    <h5> Top favorite pictures (click on map marker) <span id="show_mapmarker"></span> </h5> 
     <div id="thumbs"> </div> 
   </div>
   <div class="subcontainer">
@@ -334,11 +334,17 @@ function addPathLocations(){
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng({{ loc[1][0] }},{{ loc[1][1] }}),
       map: map,
-      icon: '../static/images/mapmarkers/'.concat(routeSymbolPng.shift()),
+      icon: '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}]),
     });
     
     // defining what happens when you click on a marker 
     google.maps.event.addListener(marker, 'click', function(event) {
+      // add google map marker
+      $("#show_mapmarker").empty()
+      $("#show_mapmarker").append('<img width="15" src="' + 
+        '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}])
+        + '">')
+
       // generate the top 5 flickr thumb nails 
       $("#thumbs").empty();
       for (i = 0; i < 4; i++){

@@ -4,4 +4,5 @@ presentations/
 flickr_yahoodata/
 tripdata/
 sql_queries/
+*.pyc
 

@@ -36,7 +36,7 @@ def map():
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
-    maxlocs = 8
+    maxlocs = 9
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
     nvisits = time_req + 2; # tailor number of visits per location 
