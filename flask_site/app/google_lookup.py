@@ -82,23 +82,30 @@ def get_google_direction_matrix(locations,origin=None,mode='walking'):
     return jsonResponse
 
 # format query and look up using google geocoding API when elements exceed 10 
-def get_google_direction_matrix_extended(all_locations,origin=None,mode='walking'):
+def get_google_direction_matrix_extended(all_locations,origin=None,pairwise=True,mode='walking'):
     google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
     base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json?'
 
     distance_matrix = np.array([])
     duration_matrix = np.array([])
     max_items = len(all_locations)
+    mode_request = '&mode=' + mode
+    api_request = '&key=' + google_api_key
 
     if origin: 
-        init = -1
+        start = -1
     else:
-        init = 0
+        start = 0
+
+    if pairwise:
+        finish = max_items
+    else:
+        finish = 0
 
     # do one origin point at a time 
-    for origidx in range(init, max_items):
+    for origidx in range(start, finish):
         # specify origin 
-        print origidx
+        #print origidx
         if origidx == -1:
             origin_request = 'origins=%s,%s' % (origin[0],origin[1])
         else:
@@ -110,7 +117,7 @@ def get_google_direction_matrix_extended(all_locations,origin=None,mode='walking
         duration_dest = np.array([])
 
         # request each destination 
-        for init_item in range(max_items / 10 + 1):
+        for init_item in range( (max_items-1) / 10 + 1):
             
             # do 10 at a time 
             if init_item < max_items / 10:
@@ -129,8 +136,6 @@ def get_google_direction_matrix_extended(all_locations,origin=None,mode='walking
             destination_request = '&destinations='
             destination_request = destination_request + location_request[1:]
 
-            mode_request = '&mode=' + mode
-            api_request = '&key=' + google_api_key
             complete_url = base_url + origin_request + destination_request + mode_request + api_request 
 
             # request from google 
@@ -250,6 +255,26 @@ if __name__ == '__main__':
         plt.imshow(distance_matrix, interpolation='nearest')
         plt.show()
 
+    def test3b():
+        init_loc = [40.74844,-73.985664]
+        centroids = get_centroids_timescore_sql(con,init_loc,10)
+        nearby_locs = [[cent['lat'],cent['lng']] for cent in centroids]
+        distance_matrix, duration_matrix = get_google_direction_matrix_extended(nearby_locs,origin=init_loc,pairwise=False)
+        print distance_matrix, duration_matrix
+
+
+    def test3_save():
+        import pickle
+        import pandas as pd
+        distance_matrix = pickle.load( open( "distance_matrix.p", "rb" ) )
+        duration_matrix = pickle.load( open( "duration_matrix.p", "rb" ) )
+
+        distance_matrix = pd.DataFrame(distance_matrix)
+        duration_matrix = pd.DataFrame(duration_matrix)
+
+        distance_matrix.to_sql(name='flickr_clusters_nyc2_distmat',con=con,flavor='mysql',if_exists='replace')
+        duration_matrix.to_sql(name='flickr_clusters_nyc2_durmat', con=con,flavor='mysql',if_exists='replace')
+
     # test google direction matrix API integration with best path finder 
     def test4():
         from mypath import find_best_path
@@ -288,5 +313,4 @@ if __name__ == '__main__':
         for response in jsonResponse:
             print response['name']
 
-
-    test3()
+    test3b()

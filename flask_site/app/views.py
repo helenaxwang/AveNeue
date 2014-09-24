@@ -23,6 +23,7 @@ def landing():
 #@app.route('/map')
 def map():
     print request.form
+    t1 = time.time()
 
     do_heatmap = False
     heatmap_db = 'flickr_yahoo_nyc2'
@@ -36,7 +37,8 @@ def map():
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
-    maxlocs = 9
+    distance_matrix_method = 2 # 1 for live query, # 2 for loading from database
+    maxlocs = 10
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
     nvisits = time_req + 2; # tailor number of visits per location 
@@ -156,15 +158,27 @@ def map():
     if do_path:
         # query google distance matrix api and build distance matrix
         t0 = time.time()
-        jsonResponse = get_google_direction_matrix(centroids,init_loc)
-        rows = jsonResponse['rows']
-        distance_matrix,duration_matrix = get_distance_matrix(rows)
+        if distance_matrix_method == 1:
+            jsonResponse = get_google_direction_matrix(centroids,init_loc)
+            rows = jsonResponse['rows']
+            distance_matrix,duration_matrix = get_distance_matrix(rows)
+
+        elif distance_matrix_method == 2:
+            # get the distance from starting location to all centroids 
+            distance_matrix,duration_matrix = get_google_direction_matrix_extended(centroids,origin=init_loc,pairwise=False)
+            
+            # get all pairwise distance from database
+            distance_matrix0, duration_matrix0 = get_distdur_matrix_sql(db, centroids_full['index'].values)
+
+            # append it together with distance matrices for initial location 
+            distance_matrix = np.vstack([distance_matrix, distance_matrix0])
+            duration_matrix = np.vstack([duration_matrix, duration_matrix0])
+
         print time.time() - t0, 'seconds for querying and building distance matrix'
 
         # find optimal path
         t0 = time.time()
         duration_at_each_location = get_estimated_duration_sql(db,centroids_full['index'].values)
-        #duration_at_each_location = np.ones(len(centroids))*3600
         duration_at_each_location = np.insert(duration_at_each_location,0,0)
         duration_at_each_location = duration_at_each_location * (2./time_req+0.5)
         print 'duration multiplier = %s' % (2./time_req+0.5)
@@ -195,6 +209,7 @@ def map():
     #-------------------------------------------------------------------------------
     # get google places for each location 
     #-------------------------------------------------------------------------------
+    t0 = time.time()
     googlePlaces = []
     for loc in pathlocs:
         places = get_google_places(loc[1][0], loc[1][1], radius=50)
@@ -203,10 +218,14 @@ def map():
            places_formated.append({'name': pl['name'], 'icon': pl['icon'], \
            'lat': pl['geometry']['location']['lat'], 'lng': pl['geometry']['location']['lng']})
         googlePlaces.append(places_formated)
+    print time.time() - t0, 'seconds for reverse google places search'
     #centroids_full = centroids_full.sort('score',ascending=False)
 
     # box = [init_loc_dict['viewport']['southwest']['lat'], init_loc_dict['viewport']['southwest']['lng'],\
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
+
+    print time.time() - t1, 'seconds total'
+
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, path_time_idx=path_time_idx, \
         duration_at_each_location=duration_at_each_location[1:], thumb_urls2=thumb_urls2, \
@@ -234,3 +253,20 @@ def get_thumb_sql(db,clusterId,topnum=10):
         cur.execute(cmd)
         fav_urls = cur.fetchall()
     return fav_urls
+
+def get_distdur_matrix_sql(db, clusterId):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cur.execute("SELECT * FROM flickr_clusters_nyc2_distmat")
+        distance_matrix = cur.fetchall()
+        cur.execute("SELECT * FROM flickr_clusters_nyc2_durmat")
+        duration_matrix = cur.fetchall()
+    # convert into data frames 
+    distance_matrix = pd.DataFrame(distance_matrix)
+    duration_matrix = pd.DataFrame(duration_matrix)
+    # get matrices for current centroids 
+    columns = [str(x) for x in clusterId]
+    distance_matrix = distance_matrix.ix[clusterId][columns]
+    duration_matrix = duration_matrix.ix[clusterId][columns]
+
+    return distance_matrix, duration_matrix
