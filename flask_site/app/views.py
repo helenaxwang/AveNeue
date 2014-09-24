@@ -18,15 +18,6 @@ db = mdb.connect('localhost', 'root', '', 'insight')
 def landing():
     return render_template('index.html')
 
-@app.route('/d3')
-def testd3():
-    centroids_full = get_centroids_timescore_sql(db,[40.74844,-73.985664],5)
-    centroids_full = pd.DataFrame(centroids_full)
-    hour_keys = [str(x) for x in  np.linspace(0,24,49)]
-    hour_keys = hour_keys[:-1]
-    time_score = centroids_full.ix[:2][hour_keys].T
-    return render_template('testd3.html',time_score=time_score)
-
 # map page 
 @app.route('/map', methods=["POST"])
 #@app.route('/map')
@@ -49,6 +40,7 @@ def map():
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
     nvisits = time_req + 2; # tailor number of visits per location 
+    print 'visiting %d places' % nvisits
 
     # initialize starting location from get request
     results = get_google_address(request.form['startingLocation'])
@@ -181,7 +173,7 @@ def map():
         duration_at_each_location = duration_at_each_location * (2./time_req+0.5)
         print 'duration multiplier = %s' % (2./time_req+0.5)
 
-        path, path_time_idx = find_best_path2(distance_matrix,duration_matrix,nvisits,\
+        path, path_time_idx = find_best_path(distance_matrix,duration_matrix,nvisits,\
             loc_duration=duration_at_each_location,time_score=time_score,init_time_secs=init_time_hr*60*60)
         print time.time() - t0, 'seconds. best path found: ', path
         pathlocs = []
