@@ -3,7 +3,6 @@ import pymysql as mdb
 import pprint
 import pdb
 import numpy as np
-#%reload_ext autoreload
 
 # TODO: add walking versus biking mode
 
