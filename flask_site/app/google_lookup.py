@@ -179,4 +179,4 @@ if __name__ == '__main__':
         for response in jsonResponse:
             print response['name']
 
-    test3()
+    test2()
