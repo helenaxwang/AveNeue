@@ -19,7 +19,7 @@
       border: 1px solid #999;
     }*/
   .fill { 
-    min-height: 600px;
+    min-height: 500px;
     height: 100%;
   }
 
@@ -57,13 +57,13 @@
 <!-- Interactive stuff for canvas -->
 <div class="container col-md-6" style="position:relative;margin-top:-10px;">
   <div class="container col-md-12" style="height:380px;">
-    <h5> Top favorite pictures (click on map marker) <span id="show_mapmarker"></span> </h5> 
+    <h4> Top favorite pictures (click on map marker) <span id="show_mapmarker"></span> </h4> 
     <div id="thumbs"> </div> 
   </div>
-  <div class="subcontainer">
+<!--   <div class="subcontainer">
     <h5> Interest score over the course of the day </h5>
     <div id="timegraph"></div>
-  </div>
+  </div> -->
 </div>
 
 <!-- Itinerary output -->
@@ -341,7 +341,7 @@ function addPathLocations(){
     google.maps.event.addListener(marker, 'click', function(event) {
       // add google map marker
       $("#show_mapmarker").empty()
-      $("#show_mapmarker").append('<img width="15" src="' + 
+      $("#show_mapmarker").append('<img width="20" src="' + 
         '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}])
         + '">')
 
@@ -361,8 +361,7 @@ function addPathLocations(){
         var new_vals = { index: {{ loop.index-1 }}, hour: {{ hridx }}, score: {{ tsc[loc[0]]*100 }} };
         score_at_currloc.push(new_vals);
       {% endfor %}
-      plotd3(score_at_currloc)
-
+      // plotd3(score_at_currloc)
     });
 
    marker.setMap(map);
@@ -410,12 +409,16 @@ function addTravelInfo(distance_meters, time_sec){
   {% for loc in path_locations %}
     duration_stay += {{ duration_at_each_location[loc[0]] }}
   {% endfor %}
-  duration_stay = duration_stay / 3600; 
+  //duration_stay = duration_stay / 3600; 
 
   distance = distance_meters / 1000 * 0.621371
-  time = time_sec / 60;
+  // time = time_sec / 60;
+  var total_time = (time_sec + duration_stay) / 3600;
+
+  // div.innerText = "Total distance: " + distance.toFixed(1) +" mi (" 
+  //   + time.toFixed(0) + " min travel, " +  duration_stay.toFixed(1) + " hr visits)";
   div.innerText = "Total distance: " + distance.toFixed(1) +" mi (" 
-    + time.toFixed(0) + " min travel, " +  duration_stay.toFixed(1) + " hr visits)";
+    + total_time.toFixed(1) + " hrs)";
 }
 
 
