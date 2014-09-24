@@ -3,7 +3,6 @@ import pymysql as mdb
 import pprint
 import pdb
 import numpy as np
-from matplotlib import pyplot as plt
 #%reload_ext autoreload
 
 # TODO: add walking versus biking mode
@@ -51,7 +50,7 @@ def get_google_places(lat,lng,radius=10):
 
 
 # format query and look up using google geocoding API
-def get_google_direction_matrix(locations,origin=None):
+def get_google_direction_matrix(locations,origin=None,mode='walking'):
     google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
     base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json?'
 
@@ -72,7 +71,7 @@ def get_google_direction_matrix(locations,origin=None):
     destination_request = '&destinations='
     destination_request = destination_request + location_request[1:]
 
-    mode_request = '&mode=walking'
+    mode_request = '&mode=' + mode
     api_request = '&key=' + google_api_key
     complete_url = base_url + origin_request + destination_request + mode_request + api_request 
 
@@ -80,8 +79,80 @@ def get_google_direction_matrix(locations,origin=None):
     jsonResponse = json.loads(googleResponse.read())
 
     #pprint.pprint(jsonResponse)    
-    
     return jsonResponse
+
+# format query and look up using google geocoding API when elements exceed 10 
+def get_google_direction_matrix_extended(all_locations,origin=None,mode='walking'):
+    google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
+    base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json?'
+
+    distance_matrix = np.array([])
+    duration_matrix = np.array([])
+    max_items = len(all_locations)
+
+    if origin: 
+        init = -1
+    else:
+        init = 0
+
+    # do one origin point at a time 
+    for origidx in range(init, max_items):
+        # specify origin 
+        print origidx
+        if origidx == -1:
+            origin_request = 'origins=%s,%s' % (origin[0],origin[1])
+        else:
+            origin_loc = all_locations[origidx]
+            origin_request = 'origins=%s,%s' % (origin_loc[0],origin_loc[1])
+        
+        # specify destination 10 at a time and query 
+        distance_dest = np.array([])
+        duration_dest = np.array([])
+
+        # request each destination 
+        for init_item in range(max_items / 10 + 1):
+            
+            # do 10 at a time 
+            if init_item < max_items / 10:
+                item_idx = [x + init_item*10 for x in range(10)]
+            else:
+                item_idx = [x + init_item*10 for x in range(0, max_items%10)]
+            locations = [all_locations[i] for i in item_idx]
+            
+
+            # parse each location 
+            location_request = ''
+            for loc in locations:
+                location_request = location_request + '|%s,%s' % (loc[0],loc[1])
+
+            # specify destinations
+            destination_request = '&destinations='
+            destination_request = destination_request + location_request[1:]
+
+            mode_request = '&mode=' + mode
+            api_request = '&key=' + google_api_key
+            complete_url = base_url + origin_request + destination_request + mode_request + api_request 
+
+            # request from google 
+            googleResponse = urllib.urlopen(complete_url)
+            jsonResponse = json.loads(googleResponse.read())
+
+            # convert into numpy array 
+            rows = jsonResponse['rows']
+            distance_row,duration_row = get_distance_matrix(rows)
+
+            # extend row
+            distance_dest = np.append(distance_dest, distance_row[0])
+            duration_dest = np.append(duration_dest, duration_row[0])
+
+        if distance_matrix.size>0:
+            distance_matrix = np.vstack([distance_matrix, distance_dest])
+            duration_matrix = np.vstack([duration_matrix, duration_dest])
+        else:
+            distance_matrix = distance_dest
+            duration_matrix = duration_dest
+
+    return distance_matrix, duration_matrix
 
 
 def get_distance_matrix(rows):
@@ -106,19 +177,16 @@ def get_distance_matrix(rows):
     # convert into numpy matrices
     distance_value = np.asarray(distance_value)
     duration_value = np.asarray(duration_value)
-    #pdb.set_trace()
-    # # image 
-    # plt.imshow(distance_value, interpolation='nearest')
-    # plt.imshow(duration_value, interpolation='nearest')
-    # plt.show()
-    # print time.time() - t0
     return (distance_value,duration_value)
 
 if __name__ == '__main__':
+    import time 
+    from flickr_sites import get_centroids_timescore_sql
+    from matplotlib import pyplot as plt
+    con = mdb.connect('localhost', 'root', '', 'insight')
 
     # test the get_google_address function by looking up addresses in tripomatic database
     def test1():
-        con = mdb.connect('localhost', 'root', '', 'insight')
         with con:
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute("SELECT Id, Name, Address FROM tripomatic")
@@ -140,10 +208,50 @@ if __name__ == '__main__':
                         pprint.pprint(result['geometry'])
                         pdb.set_trace()
 
-
+    # test google direction matrix API
     def test2():
-        # test google direction matrix API integration with best path finder 
-        import time 
+        # get a bunch of locations from sql
+        init_loc = [40.74844,-73.985664]
+        centroids = get_centroids_timescore_sql(con,init_loc,9)
+        nearby_locs = [[cent['lat'],cent['lng']] for cent in centroids] 
+
+        # try querying google api 
+        t0 = time.time()
+        jsonResponse = get_google_direction_matrix(nearby_locs,init_loc)
+        rows = jsonResponse['rows']
+        distance_matrix,duration_matrix = get_distance_matrix(rows)
+        print 'querying and building distance matrix for %s nearby locations: %s s' % (len(nearby_locs), time.time()-t0)
+        print distance_matrix
+        # image 
+        plt.imshow(distance_matrix, interpolation='nearest')
+        #plt.imshow(duration_matrix, interpolation='nearest')
+        plt.show()
+
+
+    def test3():
+        import pickle
+        # get a bunch of locations from sql
+        #init_loc = [40.74844,-73.985664]
+        #centroids = get_centroids_timescore_sql(con,init_loc,10)
+        
+        with con:
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cmd = "SELECT * FROM flickr_clusters_nyc2"
+            cur.execute(cmd)
+            centroids = cur.fetchall()
+
+        nearby_locs = [[cent['lat'],cent['lng']] for cent in centroids]
+        distance_matrix, duration_matrix = get_google_direction_matrix_extended(nearby_locs)
+        
+        # pickle these 
+        pickle.dump( distance_matrix, open( "distance_matrix.p", "wb" ) )
+        pickle.dump( duration_matrix, open( "duration_matrix.p", "wb" ) )
+        #distance_matrix = pickle.load( open( "distance_matrix.p", "rb" ) )
+        plt.imshow(distance_matrix, interpolation='nearest')
+        plt.show()
+
+    # test google direction matrix API integration with best path finder 
+    def test4():
         from mypath import find_best_path
         # initial and all possible locations 
         init_loc = [40.74844,-73.985664]
@@ -173,10 +281,12 @@ if __name__ == '__main__':
         print 'visiting %d locations out of %d :' % (nvisits,len(nearby_locs)+1), time.time()-t1
         #pdb.set_trace()
 
-    def test3():
+    # test google places api --> reverse lookup 
+    def test5():
         location = [40.74844,-73.985664]
         jsonResponse = get_google_places(location[0], location[1])
         for response in jsonResponse:
             print response['name']
 
-    test2()
+
+    test3()

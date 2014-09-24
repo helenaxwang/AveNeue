@@ -31,7 +31,7 @@ def map():
     elif heatmap_db == 'flickr_yahoo_nyc':
         cluster_min_samples = 1000
 
-    do_centroid  = 2 # 0 no, 1, compute online, 2 fetch from data base 
+    do_centroid  = 2 # 0 no, 1, compute online, 2 fetch from database 
     do_timescore = 1 # 1 = yes, 0 = no, 2 = constant 
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
@@ -40,7 +40,7 @@ def map():
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
     nvisits = time_req + 2; # tailor number of visits per location 
-    print 'visiting %d places' % nvisits
+    print 'visiting %d places out of %d' % (nvisits, maxlocs)
 
     # initialize starting location from get request
     results = get_google_address(request.form['startingLocation'])
@@ -49,21 +49,19 @@ def map():
     init_loc = results[0]['geometry']['location'].values()
     print 'initial location:', request.form['startingLocation'], init_loc
 
-    #init_loc = [40.74844,-73.985664] # empire state building, latitude/longitude
+    #init_loc = [40.74844,-73.985664]    # empire state building, latitude/longitude
     #init_loc = [40.7298482,-73.9974519] # washington square park 
     #init_loc = [40.7148731,-73.9591367] # williamsburg
     #init_loc = [40.7324628,-73.9900081] # third ave
-    #init_loc = [40.766117,-73.9786236]   # columbus circle 
+    #init_loc = [40.766117,-73.9786236]  # columbus circle 
     
-    bound_in_miles = 1.0
-    bound_in_latlng = bound_in_miles/69.
-    #bound_in_latlng = 0.015
-
     #------------------------------------------------------------------
     # get heatmap 
     #------------------------------------------------------------------
     t0 = time.time()
     if do_heatmap:
+        bound_in_miles = 1.0
+        bound_in_latlng = bound_in_miles/69. #0.015
         heatmap = get_heatmap_sql2(db,init_loc,bound_in_latlng,which_table=heatmap_db)
     else:
         heatmap = []
@@ -79,7 +77,7 @@ def map():
         centroids,labels = get_clusters_dbscan(heatmap,min_samples=cluster_min_samples)
         centroids_full = pd.DataFrame(centroids,columns=['lat','lng']) 
     elif do_centroid == 2:
-        centroids_full = get_centroids_timescore_sql(db,init_loc,maxlocs) # maxlocs #bound_in_latlng
+        centroids_full = get_centroids_timescore_sql(db,init_loc,maxlocs) 
         centroids_full = pd.DataFrame(centroids_full)
         centroids = centroids_full[['lat','lng']].values
     else:
@@ -158,8 +156,6 @@ def map():
     if do_path:
         # query google distance matrix api and build distance matrix
         t0 = time.time()
-        if len(centroids) > maxlocs:
-            centroids = centroids[:maxlocs]
         jsonResponse = get_google_direction_matrix(centroids,init_loc)
         rows = jsonResponse['rows']
         distance_matrix,duration_matrix = get_distance_matrix(rows)
