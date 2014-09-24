@@ -183,7 +183,7 @@ def map():
         duration_at_each_location = duration_at_each_location * (2./time_req+0.5)
         print 'duration multiplier = %s' % (2./time_req+0.5)
 
-        path, path_time_idx = find_best_path(distance_matrix,duration_matrix,nvisits,\
+        path, path_time_idx = find_best_path_list(distance_matrix,duration_matrix,nvisits,\
             loc_duration=duration_at_each_location,time_score=time_score,init_time_secs=init_time_hr*60*60)
         print time.time() - t0, 'seconds. best path found: ', path
         pathlocs = []

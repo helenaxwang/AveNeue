@@ -83,7 +83,7 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, \
 
 #---------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------
-def find_best_path2(distance_matrix,duration_matrix, nlocations, loc_duration, \
+def find_best_path_list(distance_matrix,duration_matrix, nlocations, loc_duration, \
     time_score, interval=30, init_time_secs=36000):
 
 # distance_matrix: n+1 x n matrix, where rows correspond to origin, columns correspond to destination
@@ -256,13 +256,13 @@ if __name__ == '__main__':
 
     def test2():
         
-        nlocations = 12;
-        nvisits = 4;
+        nlocations = 10;
+        nvisits = 5;
         print 'visiting %d out of %d locations' % (nvisits, nlocations)
         distance_matrix = np.arange(nlocations*(nlocations+1)).reshape((nlocations+1,nlocations)) 
         duration_matrix = np.ones((nlocations+1,nlocations))*3600
         loc_duration = np.array(range(nlocations+1))*3600
-        time_score = np.ones((nlocations,48))
+        time_score = np.random.rand(nlocations,48)
         time_score = np.vstack([np.zeros(48), time_score])
         
         t0 = time.time()
@@ -275,7 +275,7 @@ if __name__ == '__main__':
         t0 = time.time()
         print '------------------------------------'
         print 'implementation with list ...'
-        min_path, time_idx = find_best_path2(distance_matrix,duration_matrix,nvisits,loc_duration,time_score)
+        min_path, time_idx = find_best_path_list(distance_matrix,duration_matrix,nvisits,loc_duration,time_score)
         print min_path, time_idx
         print time.time() - t0, 's'
 
