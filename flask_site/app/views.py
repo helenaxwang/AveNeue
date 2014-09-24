@@ -6,7 +6,7 @@ import pdb
 from flickr_sites import *
 from google_lookup import *
 from tripomatic_lookup import *
-from mypath import find_best_path
+from mypath import *
 import pandas as pd
 import numpy as np
 
@@ -181,7 +181,7 @@ def map():
         duration_at_each_location = duration_at_each_location * (2./time_req+0.5)
         print 'duration multiplier = %s' % (2./time_req+0.5)
 
-        path, path_time_idx = find_best_path(distance_matrix,duration_matrix,nvisits,\
+        path, path_time_idx = find_best_path2(distance_matrix,duration_matrix,nvisits,\
             loc_duration=duration_at_each_location,time_score=time_score,init_time_secs=init_time_hr*60*60)
         print time.time() - t0, 'seconds. best path found: ', path
         pathlocs = []

@@ -44,7 +44,7 @@ if __name__ == '__main__':
     p.add_child(node(8))
     print n
     print list(n.paths())
-    print n.flatten_tree()
+    #print n.flatten_tree()
 
     # n2 = node(0)
     # n2.add_all_children([0,1,2,5])
