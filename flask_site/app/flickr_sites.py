@@ -103,7 +103,6 @@ def get_centroids_timescore_sql(db,init_loc,num=5):
     #centroids = list(centroids)
     return centroids
 
-
 def get_photo_density(photos, interval=30, drop_duplicates=True, normalize=False):
     # convert to data frame 
     photo_df = pd.DataFrame(photos)
@@ -139,15 +138,6 @@ def compute_photo_timescore(photo_df, overall_density=None,smooth=3):
         hour_loc = _movingaverage(hour_loc,3)
     return hour_loc
 
-# def _get_total_photo_density(photos, normalize=False):
-#     photos_by_hour = [25872, 15102, 11771,  9836,  9052,  8434,  9993, 14671, 22276,\
-#        26439, 34341, 43772, 54410, 57102, 56773, 57608, 56338, 50621,\
-#        48689, 49202, 42919, 38819, 32505, 25750]
-#     total_photos = 802295.0
-#     photo_density = np.array(photos_by_hour) 
-#     if normalize:
-#         photo_density = photo_density / total_photos
-#     return photo_density
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
