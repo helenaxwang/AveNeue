@@ -72,6 +72,7 @@ def get_timemap_sql(db,init_loc,lim=0.005):
     return timemap
 
 # get precomputed centroids of flicker photos from heatmaps from sql
+# no longer used 
 def get_centroids_sql(db,init_loc,lim=0.01):
     with db:
         cur = db.cursor()

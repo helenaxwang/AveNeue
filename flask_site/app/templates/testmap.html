@@ -1,0 +1,111 @@
+{% extends "layout/base.html" %}
+
+{% block head %}
+<!-- https://developers.google.com/maps/documentation/javascript/heatmaplayer -->
+  <style>
+    html, body, #map-canvas {
+      height: 100%;
+      margin: 0px;
+      padding: 20px
+    }
+    body {
+    margin-top: 50px;
+    padding-bottom: 0px;
+    }
+  </style>
+  <link href="static/css/d3style.css" rel="stylesheet">
+  <!-- Bootstrap core CSS -->
+  <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
+{% endblock %}
+
+
+{% block content %}
+<div id="map-canvas"></div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
+
+<!-- Google maps script  -->
+<script>
+
+var map, infoWindow; 
+
+// create an array of heatmap points 
+var heatMapData = []
+{% for loc in heatmaploc %}
+   heatMapData.push(
+    {location: new google.maps.LatLng({{ loc['lat'] }}, {{ loc['lng'] }}), weight: 1 }
+    );
+{% endfor %}
+
+var myLocation = new google.maps.LatLng({{ myloc[0] }},{{ myloc[1] }});
+
+// Initialize plotting for google maps 
+function initialize() {
+  infoWindow = new google.maps.InfoWindow();
+
+  var mapOptions = {
+    zoom: 15,
+    center: myLocation,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+
+  map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+  //directionsDisplay.setMap(map);
+
+  addHeatMap()
+  addInitialLoc()
+  addCentroidMarkers()
+}
+
+// set heat map 
+function addHeatMap(){
+  var pointArray = new google.maps.MVCArray(heatMapData);
+  var heatmap = new google.maps.visualization.HeatmapLayer({
+    data: pointArray
+  });
+  heatmap.setMap(map);
+}
+
+// set marker for starting location 
+function addInitialLoc(){
+  var marker = new google.maps.Marker({
+    position: myLocation,
+    map: map,
+    title:"My location"
+  });
+  marker.setMap(map);
+}
+
+// set additional markers for detected centroids from flickr photos
+function addCentroidMarkers(){
+  {% for index, loc in centroids.iterrows() %}
+    coordinate = new google.maps.LatLng({{ loc['lat'] }},{{ loc['lng'] }})
+
+    var marker = new google.maps.Marker({
+      position: coordinate,
+      map: map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 2
+      },
+    });
+
+    google.maps.event.addListener(marker, 'click', function(event) {
+             infoWindow.setPosition(coordinate);
+             infoWindow.setContent( String({{index}}) + '<br>' + String({{ loc['score'] }}) );
+             infoWindow.open(map,this);
+    });
+    // var infoWindow = new google.maps.InfoWindow( 
+    //   {content: String({{index}}) + '<br>' + String({{ loc['score'] }}) } 
+    //   );
+    //infoWindow.open(map,marker);
+    //marker.setMap(map);
+  {% endfor %}
+}
+google.maps.event.addDomListener(window, 'load', initialize);
+</script>
+
+{% endblock %}

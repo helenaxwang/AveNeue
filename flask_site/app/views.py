@@ -18,6 +18,48 @@ db = mdb.connect('localhost', 'root', '', 'insight')
 def landing():
     return render_template('index.html')
 
+# test whether clustering works 
+@app.route('/testmap')
+def testmap():
+    do_centroid = 1;
+
+    heatmap_db = 'flickr_clusters_nyc_test'
+    cluster_min_samples = 200
+    cluster_eps=0.0005
+
+    if heatmap_db == 'flickr_yahoo_nyc2':
+        cluster_min_samples = 100
+    elif heatmap_db == 'flickr_yahoo_nyc':
+        cluster_min_samples = 500
+
+    #init_loc = [40.74844,-73.985664]    # empire state building, latitude/longitude
+    #init_loc = [40.7298482,-73.9974519] # washington square park 
+    #init_loc = [40.7148731,-73.9591367] # williamsburg
+    init_loc = [40.6963532,-73.9953232]
+    #init_loc = [40.7324628,-73.9900081] # third ave
+    #init_loc = [40.766117,-73.9786236]  # columbus circle 
+
+    bound_in_miles = 1
+    bound_in_latlng = bound_in_miles/69. #0.015
+    heatmap = get_heatmap_sql2(db,init_loc,bound_in_latlng,which_table=heatmap_db)
+
+    t0 = time.time()
+    if do_centroid == 1:
+        centroids,labels = get_clusters_dbscan(heatmap, eps=cluster_eps, min_samples=cluster_min_samples)
+        centroids_full = pd.DataFrame(centroids,columns=['lat','lng']) 
+    elif do_centroid == 2:
+        centroids_full = get_centroids_timescore_sql(db,init_loc,100) 
+        centroids_full = pd.DataFrame(centroids_full)
+        centroids = centroids_full[['lat','lng']].values
+    else:
+        centroids = []
+        centroids_full = pd.DataFrame([])
+    print time.time() - t0, "seconds for %d centroids" % len(centroids)
+
+    # render 
+    return render_template("testmap.html", heatmaploc=heatmap, myloc=init_loc,centroids=centroids_full)
+
+
 # map page 
 @app.route('/map', methods=["POST"])
 #@app.route('/map')
