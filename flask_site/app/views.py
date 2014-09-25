@@ -83,6 +83,7 @@ def map():
     maxlocs = 10
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
+    pop_req = (int(request.form['pop_req']) - 1) / 4.
     nvisits = time_req + 2; # tailor number of visits per location 
     print 'visiting %d places out of %d' % (nvisits, maxlocs)
 
@@ -98,7 +99,7 @@ def map():
     #init_loc = [40.7148731,-73.9591367] # williamsburg
     #init_loc = [40.7324628,-73.9900081] # third ave
     #init_loc = [40.766117,-73.9786236]  # columbus circle 
-    
+
     #------------------------------------------------------------------
     # get heatmap 
     #------------------------------------------------------------------
@@ -178,6 +179,13 @@ def map():
         hour_keys = hour_keys[:-1]
         # calculate time score !!
         time_score = centroids_full[hour_keys].values
+        # do a weighted average of the two time courses 
+        centroids_nyc = get_centroids_timescore_sql(db,init_loc,maxlocs, name='flickr_clusters_nyc2_nycusers') 
+        centroids_nyc = pd.DataFrame(centroids_nyc)
+        centroids_out = get_centroids_timescore_sql(db,init_loc,maxlocs, name='flickr_clusters_nyc2_outusers') 
+        centroids_out = pd.DataFrame(centroids_out)
+        time_score = (pop_req * centroids_out[hour_keys].values) + ((1 - pop_req) * centroids_nyc[hour_keys].values)
+
     else:
         time_score = np.ones((len(centroids),48))
         if do_timescore == 2:
@@ -265,12 +273,17 @@ def map():
     # box = [init_loc_dict['viewport']['southwest']['lat'], init_loc_dict['viewport']['southwest']['lng'],\
     #        init_loc_dict['viewport']['northeast']['lat'], init_loc_dict['viewport']['northeast']['lng']]
 
+    # define hour scores 
+    #time_score_df = centroids_full[hour_keys].T
+    time_score_df = pd.DataFrame(time_score[1:].T)
+    time_score_df.index = hour_keys
+
     print time.time() - t1, 'seconds total'
 
     return render_template("map.html", heatmaploc=heatmap, myloc=init_loc,\
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, path_time_idx=path_time_idx, \
         duration_at_each_location=duration_at_each_location[1:], thumb_urls=thumb_urls, \
-        time_score=centroids_full[hour_keys].T, google_places=googlePlaces)
+        time_score=time_score_df, google_places=googlePlaces)
 
 
 def get_estimated_duration_sql(db,clusterId):

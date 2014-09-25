@@ -94,11 +94,11 @@ def get_centroids_sql(db,init_loc,lim=0.01):
 #     centroids = list(centroids)
 #     return centroids
 
-def get_centroids_timescore_sql(db,init_loc,num=5):
+def get_centroids_timescore_sql(db,init_loc,num=5,name='flickr_clusters_nyc2'):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
         cmd = "SELECT *, POWER(lat - (%s), 2) + POWER(lng - (%s), 2) AS dist \
-        FROM flickr_clusters_nyc2 ORDER BY dist LIMIT %d" %(init_loc[0], init_loc[1], num)
+        FROM %s ORDER BY dist LIMIT %d" %(init_loc[0], init_loc[1], name, num)
         cur.execute(cmd)
         centroids = cur.fetchall()
     #centroids = list(centroids)

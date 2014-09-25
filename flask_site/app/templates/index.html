@@ -82,12 +82,12 @@
       <div class="form-group">
         <div class='col-md-12'>
           <table class="table borderless">
-          <!--<tr>
+          <tr>
               <td align="right">Off the beaten path</td>
               <td><input id="pop_req" name="pop_req" data-slider-id='slider' class='span2' type="text"
-                  data-slider-min="0" data-slider-max="10" data-slider-step="1" data-slider-value="5"/>
+                  data-slider-min="1" data-slider-max="5" data-slider-step="1" data-slider-value="3"/>
                 </td>
-              <td> Popular </td> -->
+              <td> Popular </td> 
             <tr>
               <td align="right">Take it easy</td>
               <td><input id="time_req" name="time_req" data-slider-id='slider' class='span2' type="text" 
@@ -199,9 +199,9 @@
         //submitting the form redirects the page
         $('#submit').click(function(e){
 
-          var start = document.getElementById('startingLocation');
-          var touristy_score = document.getElementById('pop_req');
-          console.log(start.value)
+          //var start = document.getElementById('startingLocation');
+          //var touristy_score = document.getElementById('pop_req');
+          //console.log(start.value)
           //window.location.href = "http://localhost:5000/map";
           // $.ajax({
           //   dataType: "JSON",

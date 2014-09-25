@@ -60,10 +60,10 @@
     <h4> Top favorite pictures (click on map marker) <span id="show_mapmarker"></span> </h4> 
     <div id="thumbs"> </div> 
   </div>
-<!--   <div class="subcontainer">
+  <div class="subcontainer">
     <h5> Interest score over the course of the day </h5>
     <div id="timegraph"></div>
-  </div> -->
+  </div>
 </div>
 
 <!-- Itinerary output -->
@@ -363,7 +363,7 @@ function addPathLocations(){
         var new_vals = { index: {{ loop.index-1 }}, hour: {{ hridx }}, score: {{ tsc[loc[0]]*100 }} };
         score_at_currloc.push(new_vals);
       {% endfor %}
-      // plotd3(score_at_currloc)
+      plotd3(score_at_currloc)
     });
 
    marker.setMap(map);

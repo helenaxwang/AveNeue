@@ -102,6 +102,12 @@ if __name__ == '__main__':
     hour_score_list_nyc.columns = time_axis
     hour_score_list_out.columns = time_axis
 
+    # add latitude longitude 
+    hour_score_list_nyc['lat'] = centroids['lat']
+    hour_score_list_nyc['lng'] = centroids['lng']
+    hour_score_list_out['lat'] = centroids['lat']
+    hour_score_list_out['lng'] = centroids['lng']
+
     # add the number of for photos for which it was computed
     hour_score_list_nyc['nphotos'] = hour_score_n_nyc
     hour_score_list_out['nphotos'] = hour_score_n_out
