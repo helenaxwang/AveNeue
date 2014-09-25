@@ -131,7 +131,6 @@ var thumb_urls = []
   {% endfor %}
   thumb_urls.push(u);
 {% endfor %}
-//console.log(thumb_urls)
 
 //var sanFrancisco = new google.maps.LatLng(37.774546, -122.433523);
 //var newYork = new google.maps.LatLng(40.7447888,-73.9809217);
@@ -347,11 +346,11 @@ function addPathLocations(){
       $("#show_mapmarker").append('<img width="20" src="' + 
         '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}])
         + '">')
-      // generate the top 5 flickr thumb nails 
+      // generate the top 4 flickr thumb nails 
       $("#thumbs").empty();
-      for (i = 0; i < 4; i++){
-        // var thumb_src = '<img class="thumb" src="' + thumb_urls[{{ loc[0] }}][i] + '">'
-        var thumb_src = '<img class="thumb" src="' + thumb_urls[{{ outerloopidx }}][i] + '">'
+      var curr_thumbs = thumb_urls[{{ outerloopidx }}]
+      for (i = 0; i < curr_thumbs.length; i++){
+        var thumb_src = '<img class="thumb" src="' + curr_thumbs[i] + '">'
         //console.log(thumb_src)
         $('#thumbs').append(thumb_src);
       }

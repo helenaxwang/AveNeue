@@ -261,8 +261,8 @@ def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
               JOIN flickr_yahoo_nyc \
               ON flickr_clusters_nyc2_thumb.Id = flickr_yahoo_nyc.Id \
               WHERE (ClusterId = %s) AND (Fav > 0) \
-              AND HOUR(date_taken) = %s \
-              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour, topnum)
+              AND HOUR(date_taken) BETWEEN %s AND %s \
+              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour-1, hour, topnum)
         cur.execute(cmd)
         fav_urls = cur.fetchall()
     return fav_urls

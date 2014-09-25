@@ -121,7 +121,7 @@ a.navbar-brand:hover {
 	background-attachment: relative;
 	background-position: center center;
 	min-height: 100%;
-	width: 100%;
+	min-width: 100%;
 	
     -webkit-background-size: 100%;
     -moz-background-size: 100%;
@@ -133,7 +133,6 @@ a.navbar-brand:hover {
     -o-background-size: cover;
     background-size: cover;
 }
-
 
 
 #header h1 {

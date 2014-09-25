@@ -135,8 +135,10 @@ def find_best_path_list(distance_matrix,duration_matrix, nlocations, loc_duratio
         # distance along the path
         distance = [distance_matrix[(p[0],p[1]-1)] for p in curr_path]
 
-        # get weighted score for this route 
-        curr_score = (1. /sum(distance)) * sum(curr_time_score) 
+        # get weighted score for this route
+        # try a different weighting algorithm !!!
+        #curr_score = (1. /sum(distance)) * sum(curr_time_score) 
+        curr_score = sum([ (100./dis) * sc for dis, sc in zip(distance,curr_time_score) if dis > 0 ])
         
         # iterate through until we find the best path 
         #print path, distance, sum(distance)
@@ -243,7 +245,6 @@ def accumulate(iterable, func=operator.add):
     for element in it:
         total = func(total, element)
         yield total
-
 
 if __name__ == '__main__':
 
