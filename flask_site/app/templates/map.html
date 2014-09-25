@@ -60,10 +60,10 @@
     <h4> Top favorite pictures (click on map marker) <span id="show_mapmarker"></span> </h4> 
     <div id="thumbs"> </div> 
   </div>
-  <div class="subcontainer">
+<!--   <div class="subcontainer">
     <h5> Interest score over the course of the day </h5>
     <div id="timegraph"></div>
-  </div>
+  </div> -->
 </div>
 
 <!-- Itinerary output -->
@@ -162,17 +162,16 @@ locationLabels = ['A','B','C','D','E','F','G']
                   + "{{  subloc['name'] }} &nbsp &nbsp " 
   {% endfor %}
   //console.log(location_text) 
+
   // add transition to row 
-  // $("#itinerary").append('<tr><td></td><td> Leave at ' + 
-  //   timeString[ {{ path_time_idx[loop.index-1] }} ] + 
-  //   '</td><td></td><td> Travel for ' +
-  //   '</td></tr>');
+  $("#itinerary").append('<tr><td></td><td> Walk {{ (dur_transit[loop.index-1]/60) | int }} min </td><td> </td><td> ' 
+    + '</td><td></td></tr>');
   //console.log( timeString[ {{ path_time_idx[loop.index-1] }} ] )
 
   // add location to row 
   $("#itinerary")
     .append('<tr><td align="center">' + '<img src="' + imgsource + '">' + 
-      '</td><td class="col-md-2"> Arrive at ' + timeString[{{ path_time_idx[loop.index] }}] + 
+      '</td><td class="col-md-2"> Arrive at ' + timeString[{{ path_time_idx[ loop.index ] }}] + 
       '</td><td align="right"> Nearby Places: </td> <td class="col-md-7">' + 
       location_text + '</td> <td class="col-md-2"> Stay for ' + 
     {{ '%0.1f' % (duration_at_each_location[loc[0]] / 3600) | float }} + ' hrs </td></tr>');
@@ -363,7 +362,7 @@ function addPathLocations(){
         var new_vals = { index: {{ loop.index-1 }}, hour: {{ hridx }}, score: {{ tsc[loc[0]]*100 }} };
         score_at_currloc.push(new_vals);
       {% endfor %}
-      plotd3(score_at_currloc)
+      //plotd3(score_at_currloc)
     });
 
    marker.setMap(map);
