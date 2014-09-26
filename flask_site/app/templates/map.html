@@ -60,6 +60,11 @@
     <h4> Top favorite pictures (click on map marker) <span id="show_mapmarker"></span> </h4> 
     <div id="thumbs"> </div> 
   </div>
+
+  <div class="subcontainer">
+    <h4> Nearby Places </h4> 
+    <div id="loc_description"></div>
+  </div>
 <!--   <div class="subcontainer">
     <h5> Interest score over the course of the day </h5>
     <div id="timegraph"></div>
@@ -148,7 +153,7 @@ var timeString = ['12 am', '12:30 am', '1 am', '1:30 am', '2 am', '2:30 am', '3 
       '8 pm', '8:30 pm', '9 pm', '9:30 pm', '10 pm', '10:30 pm', '11 pm', '11:30 pm'];
 
 
-// show initial pictures
+// populate initial pictures
 var curr_thumbs = thumb_urls[0]
 for (i = 0; i < curr_thumbs.length; i++){
   var thumb_src = '<img class="thumb" src="' + curr_thumbs[i] + '">'
@@ -156,6 +161,14 @@ for (i = 0; i < curr_thumbs.length; i++){
   $('#thumbs').append(thumb_src);
 }
 $("#show_mapmarker").append('<img width="20" src="../static/images/mapmarkers/blue_MarkerA.png">')
+// populate initial location description 
+var location_text = ''
+{% for subloc in google_places[0] %}
+    location_text = location_text +
+                '<img width="20" src="' + "{{  subloc['icon'] }}" + '">'
+                + "{{  subloc['name'] }} &nbsp &nbsp " 
+{% endfor %}
+$("#loc_description").append(location_text)
 
 
 // show iterary table 
@@ -164,7 +177,6 @@ locationLabels = ['A','B','C','D','E','F','G']
   imgsource  = '../static/images/mapmarkers/blue_Marker'.concat(locationLabels.shift()).concat('.png')
 
   {% set places = google_places[ loop.index-1] %}
-
   // get the google places found for each location 
   var location_text = ''
   {% for subloc in places %}
@@ -366,14 +378,27 @@ function addPathLocations(){
       }
 
       // generate time graphs 
-      $("#timegraph").empty();
-      var score_at_currloc = []
-      {% for hridx, tsc in time_score.iterrows() %}
-        // index number, hour, score at that hour 
-        var new_vals = { index: {{ loop.index-1 }}, hour: {{ hridx }}, score: {{ tsc[loc[0]]*100 }} };
-        score_at_currloc.push(new_vals);
-      {% endfor %}
+      // $("#timegraph").empty();
+      // var score_at_currloc = []
+      // {% for hridx, tsc in time_score.iterrows() %}
+      //   // index number, hour, score at that hour 
+      //   var new_vals = { index: {{ loop.index-1 }}, hour: {{ hridx }}, score: {{ tsc[loc[0]]*100 }} };
+      //   score_at_currloc.push(new_vals);
+      // {% endfor %}
       //plotd3(score_at_currloc)
+
+      // get the google places found for each location 
+      {% set places = google_places[ outerloopidx ] %}
+      var location_text = ''
+      {% for subloc in places %}
+          location_text = location_text +
+                      '<img width="20" src="' + "{{  subloc['icon'] }}" + '">'
+                      + "{{  subloc['name'] }} &nbsp &nbsp " 
+      {% endfor %}
+      // add location to text area
+      $("#loc_description").empty();
+      $("#loc_description").append(location_text)
+
     });
 
    marker.setMap(map);
