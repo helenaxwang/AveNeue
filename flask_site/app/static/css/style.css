@@ -1,6 +1,11 @@
 /* ==== Google font ==== */
 @import url('http://fonts.googleapis.com/css?family=Lato:400,300,700,900');
 
+html {
+  position: relative;
+  min-height: 100%;
+}
+
 body {
     background-color: #f2f2f2;
     font-family: 'Lato', sans-serif;
@@ -8,6 +13,9 @@ body {
     font-size: 18px;
     color: #2a2a2a;
     line-height: 1.6em;
+    /* Margin bottom by footer height */
+    margin-bottom: 60px;
+
     -webkit-font-smoothing: antialiased;
     -webkit-overflow-scrolling: touch;
 }
@@ -115,12 +123,12 @@ a.navbar-brand:hover {
 	/*background-color: #444;*/
   background-color: #2E2E2E;
 	background: url(../img/main-bg-opacity80.jpg) no-repeat center top; 
-	margin-top:  20px;
+	margin-top:  30px;
 	padding-top: 110px;
 	background-attachment: relative;
 	background-position: center center;
-	min-height: 100%;
-	min-width: 100%;
+	/*min-height: 100%;*/
+	/*min-width: 100%;*/
 	
     -webkit-background-size: 100%;
     -moz-background-size: 100%;
@@ -183,10 +191,15 @@ h2.subtitle {
 }
 
 /* footer */
-#footer {
+.footer {
 	background: #fd680e;
 	padding: 15px 0 0px;
-  /*margin-bottom: -20px;*/
+
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* Set the fixed height of the footer here */
+  height: 60px;
 }
 
 p.copyright {
