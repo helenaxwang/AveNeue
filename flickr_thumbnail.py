@@ -2,7 +2,7 @@ import flickr
 import pymysql as mdb
 from load_yahoo_data import load_json, format_restrict_dataframe
 import pdb
-import os, json
+import os, json, urllib2
 import pandas as pd
 
 def insert_centroids_thumbnail_sql(con,idx,photo_id,url,init=True):
@@ -15,6 +15,11 @@ def insert_centroids_thumbnail_sql(con,idx,photo_id,url,init=True):
         cmd = "INSERT INTO flickr_clusters_nyc2_thumb (ClusterId, Id, url) VALUES (%s, '%s', '%s')" % (idx, photo_id, url)
         cur.execute(cmd)
 
+# checks if redirected url is 'https://s.yimg.com/pw/images/photo_unavailable_m.gif'
+def get_redirected_url(url):
+    opener = urllib2.build_opener(urllib2.HTTPRedirectHandler)
+    request = opener.open(url)
+    return request.url
 
 # saves thumb nail urls into a sql data base for each centroid 
 if __name__ == '__main__':
@@ -27,6 +32,12 @@ if __name__ == '__main__':
         cur = db.cursor(mdb.cursors.DictCursor)
         cur.execute("SELECT * FROM flickr_clusters_nyc2")
         centroids = cur.fetchall()
+        # load centroids in data base which have cluster ids 
+        if cluster_by_id:
+            cur.execute("SELECT * FROM flickr_yahoo_nyc2")
+            centroids_saved = cur.fetchall()
+            centroids_saved = pd.DataFrame(centroids_saved)
+            print centroids_saved.shape
 
     # load files from josn 
     flickr_yahoo_path = 'flickr_yahoodata'
@@ -50,17 +61,6 @@ if __name__ == '__main__':
     photo_df = format_restrict_dataframe(photo_df)
 
     print photo_df.shape
-
-    # load centroids in data base which have cluster ids 
-    if cluster_by_id:
-        with db:
-            cur = db.cursor(mdb.cursors.DictCursor)
-            cur.execute("SELECT * FROM flickr_yahoo_nyc2")
-            centroids_saved = cur.fetchall()
-        centroids_saved = pd.DataFrame(centroids_saved)
-        print centroids_saved.shape
-    else:
-        radius = 0.002
     
     # now find photos in the vicinity of each centroid 
     init = True
@@ -71,6 +71,7 @@ if __name__ == '__main__':
             smallset = centroids_saved.ix[idx]
             smallset = pd.merge(smallset, photo_df, left_on='Id', right_on='id', how='left')
         else:
+            radius = 0.002
             idx = (photo_df['lat']-curr_loc[0])**2 + (photo_df['lng']-curr_loc[1])**2 < radius ** 2
             smallset  = photo_df.ix[idx]
 
@@ -80,6 +81,10 @@ if __name__ == '__main__':
         for idx, photo in smallset.iterrows():
             #print cent['index'], curr_loc, photo['id']
             url = "http://farm%s.static.flickr.com/%s/%s_%s_m.jpg" % (photo['farm_id'], photo['server_id'], photo['id'], photo['secret'])
+            # checks for if url is available -- maybe really slow 
+            #if 'photo_unavailable' not in get_redirected_url(url):
             insert_centroids_thumbnail_sql(db,cent['index'],photo_id=photo['id'],url=url,init=init)
-            init = False 
+            #else:
+            #    print 'photo unavailable'
+            init = False
     print 'inserted into flickr_clusters_nyc2_thumb table!'

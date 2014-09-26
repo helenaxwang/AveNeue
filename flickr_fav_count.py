@@ -30,7 +30,6 @@ def fetch_flickr_favorites(con,photo_id):
     return photos
 
 
-
 if __name__ == '__main__':
     import pdb
 

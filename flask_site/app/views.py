@@ -23,6 +23,7 @@ def landing():
 def testmap():
     do_centroid = 1;
 
+    #heatmap_db = 'flickr_clusters_nyc_test'
     heatmap_db = 'flickr_clusters_nyc_test'
     cluster_min_samples = 200
     cluster_eps=0.0005
@@ -34,8 +35,8 @@ def testmap():
 
     #init_loc = [40.74844,-73.985664]    # empire state building, latitude/longitude
     #init_loc = [40.7298482,-73.9974519] # washington square park 
-    #init_loc = [40.7148731,-73.9591367] # williamsburg
-    init_loc = [40.6963532,-73.9953232]
+    init_loc = [40.7148731,-73.9591367] # williamsburg
+    #init_loc = [40.6963532,-73.9953232] # dumbo
     #init_loc = [40.7324628,-73.9900081] # third ave
     #init_loc = [40.766117,-73.9786236]  # columbus circle 
 
@@ -133,7 +134,8 @@ def map():
     print time.time() - t0, "seconds for %d centroids" % len(centroids)
 
     #----------------------------------------------------------------------------
-    # get the list of attractions within the vincinity -- TODO: get all attractions at once?? get rid of redundancies??
+    # get the list of attractions within the vincinity 
+    #-- TODO: get all attractions at once?? get rid of redundancies??
     #----------------------------------------------------------------------------- 
     t0 = time.time()
     if do_attractions:
