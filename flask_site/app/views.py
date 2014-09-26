@@ -84,7 +84,8 @@ def map():
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
     #pop_req = (int(request.form['pop_req']) - 1) / 4.
-    nvisits = time_req + 2; # tailor number of visits per location 
+    # tailor number of visits per location 
+    nvisits = 3 if time_req < 3 else time_req + 1
     print 'visiting %d places out of %d' % (nvisits, maxlocs)
 
     # initialize starting location from get request
@@ -299,6 +300,7 @@ def get_estimated_duration_sql(db,clusterId):
     return centroids['Dur'][clusterId].values
 
 
+# no longer used 
 def get_thumb_sql(db,clusterId,topnum=10):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)

@@ -69,7 +69,7 @@
 <!-- Itinerary output -->
 <div class="col-md-10 col-md-offset-1 ">
   <h2> Suggested Itinerary </h2>
-  <table class="table table-hover" id="itinerary"> 
+  <table class="table table-striped" id="itinerary"> 
     <!--
     {% for loc in attractions %}
     <tr><td>{{ loc['Name'] }}</td><td>{{ loc['Id']}}</td><td>{{ loc['Address']}}</td></tr>
@@ -146,6 +146,17 @@ var timeString = ['12 am', '12:30 am', '1 am', '1:30 am', '2 am', '2:30 am', '3 
       '12 pm', '12:30 pm', '1 pm', '1:30 pm', '2 pm', '2:30 pm', '3 pm', '3:30 pm', 
       '4 pm', '4:30 pm', '5 pm', '5:30 pm', '6 pm', '6:30 pm', '7 pm', '7:30 pm',
       '8 pm', '8:30 pm', '9 pm', '9:30 pm', '10 pm', '10:30 pm', '11 pm', '11:30 pm'];
+
+
+// show initial pictures
+var curr_thumbs = thumb_urls[0]
+for (i = 0; i < curr_thumbs.length; i++){
+  var thumb_src = '<img class="thumb" src="' + curr_thumbs[i] + '">'
+  //console.log(thumb_src)
+  $('#thumbs').append(thumb_src);
+}
+$("#show_mapmarker").append('<img width="20" src="../static/images/mapmarkers/blue_MarkerA.png">')
+
 
 // show iterary table 
 locationLabels = ['A','B','C','D','E','F','G']

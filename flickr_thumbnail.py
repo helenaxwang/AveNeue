@@ -15,9 +15,11 @@ def insert_centroids_thumbnail_sql(con,idx,photo_id,url,init=True):
         cmd = "INSERT INTO flickr_clusters_nyc2_thumb (ClusterId, Id, url) VALUES (%s, '%s', '%s')" % (idx, photo_id, url)
         cur.execute(cmd)
 
+
 # saves thumb nail urls into a sql data base for each centroid 
 if __name__ == '__main__':
     import pdb
+    cluster_by_id = True
 
     # load centroids
     db = mdb.connect('localhost', 'root', '', 'insight')
@@ -49,14 +51,29 @@ if __name__ == '__main__':
 
     print photo_df.shape
 
+    # load centroids in data base which have cluster ids 
+    if cluster_by_id:
+        with db:
+            cur = db.cursor(mdb.cursors.DictCursor)
+            cur.execute("SELECT * FROM flickr_yahoo_nyc2")
+            centroids_saved = cur.fetchall()
+        centroids_saved = pd.DataFrame(centroids_saved)
+        print centroids_saved.shape
+    else:
+        radius = 0.002
+    
     # now find photos in the vicinity of each centroid 
-    #TODO: use the cluster labels to figure out photo affiliation, rather than restrict by radius
-    radius = 0.002
     init = True
     for cent in centroids:
         curr_loc = (cent['lat'], cent['lng'])
-        idx = (photo_df['lat']-curr_loc[0])**2 + (photo_df['lng']-curr_loc[1])**2 < radius ** 2
-        smallset  = photo_df.ix[idx]
+        if cluster_by_id:
+            idx = centroids_saved['cluster_label'] == cent['index']
+            smallset = centroids_saved.ix[idx]
+            smallset = pd.merge(smallset, photo_df, left_on='Id', right_on='id', how='left')
+        else:
+            idx = (photo_df['lat']-curr_loc[0])**2 + (photo_df['lng']-curr_loc[1])**2 < radius ** 2
+            smallset  = photo_df.ix[idx]
+
         print cent['index'], curr_loc, smallset.shape[0]
 
         #t = thumb, s=small square, m = small 
@@ -65,3 +82,4 @@ if __name__ == '__main__':
             url = "http://farm%s.static.flickr.com/%s/%s_%s_m.jpg" % (photo['farm_id'], photo['server_id'], photo['id'], photo['secret'])
             insert_centroids_thumbnail_sql(db,cent['index'],photo_id=photo['id'],url=url,init=init)
             init = False 
+    print 'inserted into flickr_clusters_nyc2_thumb table!'
