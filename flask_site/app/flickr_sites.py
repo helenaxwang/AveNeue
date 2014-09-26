@@ -104,14 +104,15 @@ def get_centroids_timescore_sql(db,init_loc,num=5,name='flickr_clusters_nyc2'):
     #centroids = list(centroids)
     return centroids
 
-def get_photo_density(photos, interval=30, drop_duplicates=True, normalize=False):
+def get_photo_density(photo_df, interval=30, drop_duplicates=True, normalize=False):
     # convert to data frame 
-    photo_df = pd.DataFrame(photos)
+    if not isinstance(photo_df,pd.DataFrame):
+        photo_df = pd.DataFrame(photo_df)
     # interval in nanoseconds 
     nsround = interval*60*1000000000 
     # use time as an index -- round to the nearest interval
     #photo_df.index = pd.to_datetime(photo_df['date_taken'])
-    photo_df['date_taken'] = pd.DatetimeIndex(((photo_df.date_taken.astype(np.int64) // nsround + 1 ) * nsround))
+    photo_df['date_taken'] = pd.DatetimeIndex(((photo_df.date_taken.astype(np.int64) // nsround ) * nsround))
     photo_df.index = photo_df['date_taken']
     # drop duplicate users 
     if drop_duplicates:

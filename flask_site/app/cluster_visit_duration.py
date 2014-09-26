@@ -41,6 +41,7 @@ if __name__ == '__main__':
     from datetime import datetime
     import pdb
     dofull = True
+    #cluster_by_id = True
 
     # get centroids from database 
     db = mdb.connect('localhost', 'root', '', 'insight')
@@ -66,11 +67,16 @@ if __name__ == '__main__':
 
     if dofull:
         #TODO: use the cluster labels to figure out photo affiliation, rather than restrict by radius
+        #NEED TO DO a join with flickr_yahoo_nyc2, or save date info into flickr_yahoo_nyc2
         radius = 0.005
         init = True
         for cent in centroids:
             curr_loc = (cent['lat'], cent['lng'])
+            #if cluster_by_id:
+                #idx = photos2['cluster_label'] == cent['index']
+            #else:
             idx = (photos2['Lat']-curr_loc[0])**2 + (photos2['Lng']-curr_loc[1])**2 < radius ** 2
+
             duration = cluster_duration(photos2, curr_loc, idx, min_hrdiff=10, max_hrdiff=10*60)
             print cent['index'], curr_loc
             print '\t estimated visit duration: %s hr' % (duration/3600.)
@@ -81,6 +87,6 @@ if __name__ == '__main__':
         curr_loc = [40.74844,-73.985664]
         radius = 0.005
         idx = (photos2['Lat']-curr_loc[0])**2 + (photos2['Lng']-curr_loc[1])**2 < radius ** 2
-        duration = cluster_duration(photos2, curr_loc, idx)
-        print 'estimated visit duration: %s hr' % duration/3600. 
+        duration = cluster_duration(photos2, curr_loc, idx, min_hrdiff=10, max_hrdiff=10*60)
+        print 'estimated visit duration: %s hr' % (duration/3600)
 
