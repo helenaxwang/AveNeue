@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify
+from flask import render_template, request
 from app import app
 import pymysql as mdb
 import pprint, time, math
@@ -17,6 +17,10 @@ db = mdb.connect('localhost', 'root', '', 'insight')
 @app.route('/index')
 def landing():
     return render_template('index.html')
+
+@app.route('/slides')
+def slides():
+    return render_template('slides.html')
 
 # test whether clustering works 
 @app.route('/testmap')
@@ -75,8 +79,8 @@ def map():
     elif heatmap_db == 'flickr_yahoo_nyc':
         cluster_min_samples = 1000
 
-    do_centroid  = 2 # 0 no, 1, compute online, 2 fetch from database 
-    do_timescore = 1 # 1 = yes, 0 = no, 2 = constant 
+    do_centroid  = 2  # 0 no, 1, compute online, 2 fetch from database 
+    do_timescore = 1  # 1 = yes, 0 = no, 2 = constant 
     do_attractions = False
     location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
@@ -93,15 +97,14 @@ def map():
     # initialize starting location from get request
     results = get_google_address(request.form['startingLocation'])
     if len(results) > 1:
-        print 'Warning!!! more than one location found %d' % len(results)
+        print 'Warning!!! %d locations found for starting address' % len(results)
+    # set to the first one 
     init_loc = results[0]['geometry']['location'].values()
     print 'initial location:', request.form['startingLocation'], init_loc
-
-    #init_loc = [40.74844,-73.985664]    # empire state building, latitude/longitude
-    #init_loc = [40.7298482,-73.9974519] # washington square park 
-    #init_loc = [40.7148731,-73.9591367] # williamsburg
-    #init_loc = [40.7324628,-73.9900081] # third ave
-    #init_loc = [40.766117,-73.9786236]  # columbus circle 
+    
+    if not within_nyc_bounds(init_loc[0],init_loc[1]):
+        print 'not in nyc error'
+        raise InvalidUsage("Starting location not found in New York")
 
     #------------------------------------------------------------------
     # get heatmap 
@@ -115,7 +118,6 @@ def map():
         heatmap = []
     print time.time() - t0, "seconds wall time", len(heatmap), "heatmap values"
     #pprint.pprint(heatmap)
-
 
     #------------------------------------------------------------------
     # cluster flickr photos to find centroids 
@@ -308,6 +310,44 @@ def map():
         time_score=time_score_df, google_places=googlePlaces)
 
 
+#  --------------------Error handling --------------------
+class InvalidUsage(Exception):
+    """Class for handling excpetions"""
+    status_code = 400
+
+    def __init__(self, message, status_code=None, payload=None):
+        Exception.__init__(self)
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
+@app.errorhandler(InvalidUsage)
+def handle_invalid_usage(error):
+    response = error.to_dict()
+    message = response.get('message', '')
+    return render_template('error.html', message = message)
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('error.html', message = "Page Not Found (404).")
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('error.html', message = "An unexpected error has occurred (500).")
+
+
+#  --------------------some helper functions --------------------
+# check whether input is within bounds 
+def within_nyc_bounds(lat, lng):
+    return (40.60 <= lat <= 40.90) and (-74.20 <= lng <= -73.70)
+
+# loads estimated location data from flickr 
 def get_estimated_duration_sql(db,clusterId):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
@@ -319,7 +359,7 @@ def get_estimated_duration_sql(db,clusterId):
     return centroids['Dur'][clusterId].values
 
 
-# no longer used 
+# no longer used -- get thumbnails for a given location 
 def get_thumb_sql(db,clusterId,topnum=10):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
@@ -331,6 +371,7 @@ def get_thumb_sql(db,clusterId,topnum=10):
         fav_urls = cur.fetchall()
     return fav_urls
 
+# get thumbnail for a given location at a particular time 
 def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
@@ -345,6 +386,7 @@ def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
         fav_urls = cur.fetchall()
     return fav_urls
 
+# load pre-saved distance/duration matrix from sql 
 def get_distdur_matrix_sql(db, clusterId):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
