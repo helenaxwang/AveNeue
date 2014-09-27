@@ -82,9 +82,10 @@ def map():
     do_path = True
     distance_matrix_method = 2 # 1 for live query, # 2 for loading from database
     maxlocs = 10
+    maxdist = 2./69.
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
-    #pop_req = (int(request.form['pop_req']) - 1) / 4.
+    pop_req = (int(request.form['pop_req']) - 1) / 4.
     # tailor number of visits per location 
     nvisits = 3 if time_req < 3 else time_req + 1
     print 'visiting %d places out of %d' % (nvisits, maxlocs)
@@ -123,10 +124,24 @@ def map():
     if do_centroid == 1:
         centroids,labels = get_clusters_dbscan(heatmap,min_samples=cluster_min_samples)
         centroids_full = pd.DataFrame(centroids,columns=['lat','lng']) 
+
     elif do_centroid == 2:
-        centroids_full = get_centroids_timescore_sql(db,init_loc,maxlocs) 
+        # find all the centroids within a certain distance 
+        centroids_full = get_centroids_timescore_sql(db,init_loc,maxdist=maxdist,num=200) 
         centroids_full = pd.DataFrame(centroids_full)
+        print '%s centroids found within %s' %(centroids_full.shape[0], maxdist)
+        # sort by a weighted average of the two populations
+        centroids_full['nycscore'] = (pop_req*centroids_full['nphotos_out'] + (1-pop_req)*centroids_full['nphotos_nyc']) / centroids_full['nphotos']
+        # sort -- use mergesort for stability
+        centroids_full = centroids_full.sort('nycscore',ascending=False, kind='mergesort')
+        # restrict to the top maxlocs entries 
+        if centroids_full.shape[0] > maxlocs:
+           centroids_full = centroids_full.head(maxlocs)
+           centroids_full = centroids_full.reset_index()
+        #else:
+        #   maxlocs = centroids_full.shape[0]
         centroids = centroids_full[['lat','lng']].values
+
     else:
         centroids = []
         centroids_full = pd.DataFrame([])
@@ -248,7 +263,7 @@ def map():
         pathlocs = []
 
     dur_transit = [duration_matrix[p] for p in path]
-    print '%d path locations: ' % len(pathlocs), pathlocs
+    #print '%d path locations: ' % len(pathlocs), pathlocs
 
     #-------------------------------------------------------------------------------
     # get the thumb nails of locations
@@ -269,7 +284,9 @@ def map():
         places = get_google_places(loc[1][0], loc[1][1], radius=50)
         places_formated = []
         for pl in places[ : min(5,len(places)) ]: # save the top five
-           places_formated.append({'name': pl['name'], 'icon': pl['icon'], \
+            if 'icon' not in pl: # add custom default icon if no icon from google maps
+                pl.update({'icon': 'static/img/map-marker-19.svg'})
+            places_formated.append({'name': pl['name'], 'icon': pl['icon'], \
            'lat': pl['geometry']['location']['lat'], 'lng': pl['geometry']['location']['lng']})
         googlePlaces.append(places_formated)
     print time.time() - t0, 'seconds for reverse google places search'
@@ -323,7 +340,7 @@ def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
               ON flickr_clusters_nyc2_thumb.Id = flickr_yahoo_nyc.Id \
               WHERE (ClusterId = %s) AND (Fav > 0) \
               AND HOUR(date_taken) BETWEEN %s AND %s \
-              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour-1, hour, topnum)
+              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour-1, hour+1, topnum)
         cur.execute(cmd)
         fav_urls = cur.fetchall()
     return fav_urls
