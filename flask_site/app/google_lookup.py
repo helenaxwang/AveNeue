@@ -4,8 +4,6 @@ import pprint
 import pdb
 import numpy as np
 
-# TODO: add walking versus biking mode
-
 # format query and look up using google geocoding API
 def get_google_address(address):
     google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'

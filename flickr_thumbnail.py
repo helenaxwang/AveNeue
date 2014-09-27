@@ -85,6 +85,6 @@ if __name__ == '__main__':
             #if 'photo_unavailable' not in get_redirected_url(url):
             insert_centroids_thumbnail_sql(db,cent['index'],photo_id=photo['id'],url=url,init=init)
             #else:
-            #    print 'photo unavailable'
+            #print 'photo unavailable'
             init = False
     print 'inserted into flickr_clusters_nyc2_thumb table!'

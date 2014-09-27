@@ -10,11 +10,28 @@
     <link href="static/css/bootstrap-slider.css" rel="stylesheet">
     <!-- <link type="text/css" href="static/css/bootstrap.min.css" /> -->
     <!--<link type="text/css" href="static/css/bootstrap-timepicker.min.css" /> -->
-    <!-- #BABABA; -->
     <!-- Custom styles for this template -->
     <style type='text/css'>
 
-		/* Customize container */
+    body {
+      background: url(static/img/main-bg-opacity80.jpg) no-repeat center top; 
+      background-attachment: relative;
+      background-position: center center;
+      min-height: 100%;
+      min-width: 100%;
+  
+      -webkit-background-size: 100%;
+      -moz-background-size: 100%;
+      -o-background-size: 100%;
+      background-size: 100%;
+
+      -webkit-background-size: cover;
+      -moz-background-size: cover;
+      -o-background-size: cover;
+      background-size: cover;
+    }
+
+    /* Customize container */
 		.container {
 			min-width: 640px;
 		}
@@ -25,14 +42,8 @@
       padding-bottom: 10px;
     }
 
-		.slider-example {
-			padding: 20px 0;
-			margin: 35px 0;
-      max-width: 700px;
-		}
-
     .address {
-      padding-top: 30px;
+      padding-top: 20px;
     }
 
     .gobutton {
@@ -47,7 +58,7 @@
       background: rgba(220, 220, 220, 0.7);
       /*background: rgba(253, 104, 0, 0.5);*/
     }
-       
+
     </style>
 
 	 <!-- <script type='text/javascript' src="static/bower_components/modernizr/modernizr.js"></script> -->
@@ -74,7 +85,6 @@
 
       <div class="col-lg-6 col-lg-offset-1 well">
       <!-- Sliders   -->
-      <!-- <div class='col-md-12'> -->
       <div class="form-group">
         <div class='col-md-12'>
           <table class="table borderless">
@@ -93,6 +103,7 @@
           </table>
         </div>
 
+        <!-- Time selection pull down menu  -->
         <div class='col-md-3 col-md-offset-1'> Starting time </div>
         <div class='col-md-3'>
           <div class="form-group">
@@ -117,7 +128,7 @@
         </div>
 
         <br>
-        <!-- Address location  -->
+        <!-- Starting address  -->
         <div class='col-md-12'>
             <div class="input-group col-sm-12 address">
                 <input type="text" class="form-control input-lg" id="startingLocation" 
@@ -131,7 +142,6 @@
                   <span class="add-on"><i class="icon-time"></i></span>
             </div> -->
 
-
           <!--             
             <div class="form-group col-sm-4">
               <label for="where"> Choose city </label>
@@ -141,8 +151,6 @@
               </select>
             </div> -->
         </div>
-
-        
 
       </div> <!-- <div class="form-group"> -->
       </div> <!-- /<div class="col-lg-6 col-lg-offset-0.5"> -->   
@@ -156,7 +164,7 @@
     </div>
 
   </form>
-  </div> <!-- /container -->
+  </div><!-- /container -->
 </div>
 
 {% endblock %}
@@ -174,77 +182,78 @@
 {% endblock %}
 
 {% block scripts %}
-    <!-- core JavaScript
-    ================================================== -->
-    <!--  <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> -->
-    <!-- <script type='text/javascript' src="static/bower_components/jquery/dist/jquery.min.js"></script>  -->
-    <!-- <script src="static/js/bootstrap.min.js"></script> -->
-    <script type='text/javascript' src="static/js/bootstrap-slider.js"></script>
-    <!--<script type="text/javascript" src="static/js/bootstrap-timepicker.min.js"></script> -->
-   
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <!--<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
 
-    <script type='text/javascript'>
-    	$(document).ready(function() {
-    		
-        //submitting the form redirects the page
-        $('#submit').click(function(e){
+<!-- core JavaScript -->
+<!-- ================================================== -->
+<!-- <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script> -->
+<!-- <script type='text/javascript' src="static/bower_components/jquery/dist/jquery.min.js"></script>  -->
+<!-- <script src="static/js/bootstrap.min.js"></script> -->
+<script type='text/javascript' src="static/js/bootstrap-slider.js"></script>
+<!--<script type="text/javascript" src="static/js/bootstrap-timepicker.min.js"></script> -->
 
-          //var start = document.getElementById('startingLocation');
-          //var touristy_score = document.getElementById('pop_req');
-          //console.log(start.value)
-          //window.location.href = "http://localhost:5000/map";
-          // $.ajax({
-          //   dataType: "JSON",
-          //   url:    "/map", 
-          //   data:     {'address': start.value},
-          //   success:  function(data) { 
-          //     console.log(data);
-          //   }
-          // });
-          return 0;
-        
-        });
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> -->
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<!--<script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
 
-	    	$('#pop_req').slider({
-          	formatter: function(value) {
-            	return value;
-          	}
-	        });
+<script type='text/javascript'>
+	$(document).ready(function() {
+		
+    //submitting the form redirects the page
+    $('#submit').click(function(e){
 
-        $('#time_req').slider({
-            formatter: function(value) {
-              return value;
-            }
-          });
-
-        // $('#timepicker1').timepicker({
-        //     formatter: function(value) {
-        //       return value;
-        //     }
-        //   });
-
-    	});
-    </script>
-
-    <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places"></script>
+      //var start = document.getElementById('startingLocation');
+      //var touristy_score = document.getElementById('pop_req');
+      //console.log(start.value)
+      //window.location.href = "http://localhost:5000/map";
+      // $.ajax({
+      //   dataType: "JSON",
+      //   url:    "/map", 
+      //   data:     {'address': start.value},
+      //   success:  function(data) { 
+      //     console.log(data);
+      //   }
+      // });
+      return 0;
     
-    <script>
-    //autocomplete for startingLocation
-    var input = /** @type {HTMLInputElement} */(
-        document.getElementById('startingLocation'));
-      var autocomplete = new google.maps.places.Autocomplete(input);
-      //restrict to NYC
-      var sw = google.maps.LatLng(40.60, -74.20);
-      var ne = google.maps.LatLng(40.90, -73.70);
-      var LatLngBounds = google.maps.LatLngBounds(sw, ne);
-      autocomplete.setBounds(LatLngBounds);
-    </script>
+    });
+
+  	$('#pop_req').slider({
+      	formatter: function(value) {
+        	return value;
+      	}
+      });
+
+    $('#time_req').slider({
+        formatter: function(value) {
+          return value;
+        }
+      });
+
+    // $('#timepicker1').timepicker({
+    //     formatter: function(value) {
+    //       return value;
+    //     }
+    //   });
+
+	});
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places"></script>
+
+<script>
+//autocomplete for startingLocation
+var input = /** @type {HTMLInputElement} */(
+    document.getElementById('startingLocation'));
+  var autocomplete = new google.maps.places.Autocomplete(input);
+  //restrict to NYC
+  var sw = google.maps.LatLng(40.60, -74.20);
+  var ne = google.maps.LatLng(40.90, -73.70);
+  var LatLngBounds = google.maps.LatLngBounds(sw, ne);
+  autocomplete.setBounds(LatLngBounds);
+</script>
 
 {% endblock %}
 

@@ -67,7 +67,8 @@ if __name__ == '__main__':
 
     if dofull:
         #TODO: use the cluster labels to figure out photo affiliation, rather than restrict by radius
-        #NEED TO DO a join with flickr_yahoo_nyc2, or save date info into flickr_yahoo_nyc2
+        #do a join with flickr_yahoo_nyc2, or save date info into flickr_yahoo_nyc2?
+        #but flickr_yahoo_nyc2 has deduplicated so may not give out accurate time difference info
         radius = 0.005
         init = True
         for cent in centroids:
