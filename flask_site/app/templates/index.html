@@ -13,50 +13,14 @@
     <!-- Custom styles for this template -->
     <style type='text/css'>
 
-    body {
-      background: url(static/img/main-bg-opacity80.jpg) no-repeat center top; 
-      background-attachment: relative;
-      background-position: center center;
-      min-height: 100%;
-      min-width: 100%;
-  
-      -webkit-background-size: 100%;
-      -moz-background-size: 100%;
-      -o-background-size: 100%;
-      background-size: 100%;
-
-      -webkit-background-size: cover;
-      -moz-background-size: cover;
-      -o-background-size: cover;
-      background-size: cover;
-    }
-
-    /* Customize container */
-		.container {
-			min-width: 640px;
-		}
-
     .borderless tbody tr td, .borderless thead tr th{
       border: none;
-      padding-top: 10px;
-      padding-bottom: 10px;
+      padding-top: 25px;
+      padding-bottom: 0px;
     }
-
-    .address {
-      padding-top: 20px;
-    }
-
-    .gobutton {
-      padding: 40px 15px;
-    }
-
-		#slider .slider-selection {
-   			background: #7e7e7e;
-  		}
 
     .well {
       background: rgba(220, 220, 220, 0.7);
-      /*background: rgba(253, 104, 0, 0.5);*/
     }
 
     </style>
@@ -71,6 +35,7 @@
 
 
 {% block content %}
+<div id="bg"> </div>
 <!-- main content   -->
 <div id="header">
   <div class="container">
@@ -78,15 +43,14 @@
 
     <div class="row">
 
-      <div class="col-lg-5 col-lg-offset-0.5">
-        <img src="static/img/aveneue_logo_md.png" width="450"> </img>
-        <h2 class="subtitle"> Discover your personal walking tour </h2>        
+      <div class="col-lg-5">
+        <img src="static/img/aveneue_logo_md.png" width="420"> </img>
+        <h2 class="subtitle"> Discover your personal walking tour </h2>  
       </div>
 
-      <div class="col-lg-6 col-lg-offset-1 well">
-      <!-- Sliders   -->
-      <div class="form-group">
-        <div class='col-md-12'>
+      <div class="col-lg-7 well">
+        <!-- Sliders   -->
+        <div class="form-group">
           <table class="table borderless">
             <tr>
               <td align="right"> Where the locals hang out </td>
@@ -94,65 +58,66 @@
                   data-slider-min="1" data-slider-max="5" data-slider-step="1" data-slider-value="3"/>
                 </td>
               <td> Popular </td> 
+            </tr>
             <tr>
               <td align="right">Take it easy</td>
               <td><input id="time_req" name="time_req" data-slider-id='slider' class='span2' type="text" 
                   data-slider-min="1" data-slider-max="5" data-slider-step="1" data-slider-value="3"/>
                 </td>
               <td>See as much as possible</td>
-          </table>
-        </div>
+            </tr>
+            <!-- Time selection pull down menu  -->
+            <tr>
+               <td align="right">Starting time</td>
+               <td>
+                <div class="form-group">
+                  <select class="form-control" name="startingTime" id="startingTime">
+                    <option value="6">6:00 am</option>
+                    <option value="7">7:00 am</option>
+                    <option value="8">8:00 am</option>
+                    <option value="9">9:00 am</option>
+                    <option value="10" selected="selected">10:00 am</option>
+                    <option value="11">11:00 am </option>
+                    <option value="12">12:00 pm </option>
+                    <option value="13">1:00 pm </option>
+                    <option value="14">2:00 pm </option>
+                    <option value="15">3:00 pm </option>
+                    <option value="16">4:00 pm </option>
+                    <option value="17">5:00 pm </option>
+                    <option value="18">6:00 pm </option>
+                    <option value="19">7:00 pm </option>
+                    <option value="20">8:00 pm </option>
+                  </select>
+                </div> <!-- /class="form-group" -->
+              </td>
+            </tr>
+        </table>
 
-        <!-- Time selection pull down menu  -->
-        <div class='col-md-3 col-md-offset-1'> Starting time </div>
-        <div class='col-md-3'>
-          <div class="form-group">
-            <select class="form-control" name="startingTime" id="startingTime">
-              <option value="6">6:00 am</option>
-              <option value="7">7:00 am</option>
-              <option value="8">8:00 am</option>
-              <option value="9">9:00 am</option>
-              <option value="10" selected="selected">10:00 am</option>
-              <option value="11">11:00 am </option>
-              <option value="12">12:00 pm </option>
-              <option value="13">1:00 pm </option>
-              <option value="14">2:00 pm </option>
-              <option value="15">3:00 pm </option>
-              <option value="16">4:00 pm </option>
-              <option value="17">5:00 pm </option>
-              <option value="18">6:00 pm </option>
-              <option value="19">7:00 pm </option>
-              <option value="20">8:00 pm </option>
-            </select>
-          </div>
-        </div>
-
-        <br>
         <!-- Starting address  -->
-        <div class='col-md-12'>
-            <div class="input-group col-sm-12 address">
-                <input type="text" class="form-control input-lg" id="startingLocation" 
-                name="startingLocation" placeholder="Starting Location in NYC"/>
-            </div>
-            <br>
-
-          <!-- 
-            <div class="input-append bootstrap-timepicker">
-                  <input id="timepicker1" type="text" class="input-small">
-                  <span class="add-on"><i class="icon-time"></i></span>
-            </div> -->
-
-          <!--             
-            <div class="form-group col-sm-4">
-              <label for="where"> Choose city </label>
-              <select class="form-control" name="where" id="where">
-                <option value="NYC">New York City</option>
-                <option value="SF">San Francisco</option>
-              </select>
-            </div> -->
+        <div class="input-group col-sm-12">
+          <p> Starting location in NYC </p>
+          <input type="text" class="form-control input-lg" id="startingLocation" 
+          name="startingLocation" placeholder="Example: Times Square, New York, NY, United States"/>
         </div>
 
-      </div> <!-- <div class="form-group"> -->
+        
+
+        <!-- 
+          <div class="input-append bootstrap-timepicker">
+                <input id="timepicker1" type="text" class="input-small">
+                <span class="add-on"><i class="icon-time"></i></span>
+          </div> -->
+
+        <!--             
+          <div class="form-group col-sm-4">
+            <label for="where"> Choose city </label>
+            <select class="form-control" name="where" id="where">
+              <option value="NYC">New York City</option>
+              <option value="SF">San Francisco</option>
+            </select>
+          </div> -->
+
+        </div> <!-- <div class="form-group"> -->
       </div> <!-- /<div class="col-lg-6 col-lg-offset-0.5"> -->   
     </div> <!-- /row  -->
     
@@ -164,7 +129,7 @@
     </div>
 
   </form>
-  </div><!-- /container -->
+  </div> <!-- /container -->
 </div>
 
 {% endblock %}
@@ -256,4 +221,3 @@ var input = /** @type {HTMLInputElement} */(
 </script>
 
 {% endblock %}
-
