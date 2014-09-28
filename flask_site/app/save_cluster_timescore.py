@@ -61,7 +61,7 @@ if __name__ == '__main__':
         centroids = cur.fetchall()
 
     # for each centroid, find the time course for both nyc users and non nyc users
-    # TODO: use cluster id rather than radius criterion
+    # TODO potentailly: use cluster id rather than radius criterion
     # but results would be too sparse 
     radius = 0.005
     init = True

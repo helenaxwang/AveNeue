@@ -62,23 +62,21 @@ def write_json(photo_list, file_name):
     with open(file_name, 'wb') as fp:
         fp.write(json.dumps(photo_list, separators=(',',':')))
 
-def insert_loc_sql(photos,init=True):
-    con = mdb.connect('localhost', 'root', '', 'insight') #host, user, password, #database
+def insert_loc_sql(con, photos,init=True, name = 'flickr_yahoo_nyc'):
     with con:
         cur = con.cursor()
         if init:
-            cur.execute("DROP TABLE IF EXISTS flickr_yahoo_nyc")
-            cur.execute("CREATE TABLE flickr_yahoo_nyc(Id VARCHAR(25) PRIMARY KEY, Lat FLOAT, Lng FLOAT, accuracy INT, \
+            cur.execute("DROP TABLE IF EXISTS "+ name)
+            cur.execute("CREATE TABLE %s(Id VARCHAR(25) PRIMARY KEY, Lat FLOAT, Lng FLOAT, accuracy INT, \
                 page_url VARCHAR(80), user_id VARCHAR(25), user_name VARCHAR(500), date_taken DATETIME, date_uploaded VARCHAR(25), \
-                device VARCHAR(100), video_marker INT)")
+                device VARCHAR(100), server_id INT, farm_id INT, secret VARCHAR(15), video_marker INT)" % name)
         for photo in photos:
-            cmd = "INSERT INTO flickr_yahoo_nyc (Id, Lat, Lng, accuracy, page_url, user_id, user_name,\
-                date_taken, date_uploaded, device, video_marker) \
-                VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s) " \
-                % (photo['id'].encode('ascii','ignore'),photo['lat'],photo['lng'], photo['accuracy'], photo['page_url'], \
+            cmd = "INSERT INTO %s (Id, Lat, Lng, accuracy, page_url, user_id, user_name,\
+                date_taken, date_uploaded, device, server_id, farm_id, secret, video_marker) \
+                VALUES ('%s', %s, %s, %s, '%s', '%s', '%s', '%s', '%s', '%s', %s, %s, '%s', %s)" \
+                % (name, photo['id'].encode('ascii','ignore'),photo['lat'], photo['lng'], photo['accuracy'], photo['page_url'], \
                     photo['user_id'],photo['user_name'].encode('ascii'),photo['date_taken'], photo['date_uploaded'],\
-                    photo['device'],photo['video_marker'].encode('ascii').rstrip('\n'))
-            #pdb.set_trace()
+                    photo['device'], int(photo['server_id']), int(photo['farm_id']), photo['secret'], photo['video_marker'].encode('ascii').rstrip('\n'))
             cur.execute(cmd)
 
 def _check_for_badidx(photo_df):
@@ -116,6 +114,7 @@ if __name__ == '__main__':
     init = True
     load_from_rawfile = False
 
+    con = mdb.connect('localhost', 'root', '', 'insight')
     for file_name in file_names:
         print file_name
         # get file name 
@@ -144,6 +143,7 @@ if __name__ == '__main__':
         photo_list = photo2.T.to_dict().values()
 
         # insert into sql data base 
-        insert_loc_sql(photo_list,init)
+        insert_loc_sql(con, photo_list,init)
+        print 'inserted into sql', file_name
         
         init = False

@@ -34,12 +34,12 @@ if __name__ == '__main__':
     import pdb
 
     init_loc = [40.7298482,-73.9974519]
-    lim = 0.15
+    lim = 0.5
     # 345123
     db = mdb.connect('localhost', 'root', '', 'insight')
     with db:
         cur = db.cursor()
-        cmd = "SELECT Id, page_url FROM flickr_yahoo_nyc WHERE date_taken >= '2012/01/01' AND \
+        cmd = "SELECT Id, page_url FROM flickr_yahoo_nyc WHERE date_taken >= '2011/01/01' AND \
         ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
         (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
         cur.execute(cmd)
