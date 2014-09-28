@@ -7,7 +7,8 @@ html {
 }
 
 body {
-    background-color: #f2f2f2;
+    /*background-color: #f2f2f2;*/
+    background-color: transparent; !important;
     font-family: 'Lato', sans-serif;
     font-weight: 500;
     font-size: 18px;
@@ -39,11 +40,10 @@ h4 {
 	font-size: 20px;
 }
 
-p {
-    margin-bottom: 10px;
-    font-size: 16px;
+h5 {
+  font-weight: bold;
+  font-size: 16px;
 }
-
 
 a {
     color: #d6ee18;
@@ -118,12 +118,24 @@ a.navbar-brand:hover {
     color: #ddd !important;
 }
 
+#bg {
+  position:fixed;
+  width:100%;
+  height:100%;
+  background: url('/static/img/main-bg-opacity80.jpg') no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
 /* Header */
 #header {	
-	/*background-color: #444;*/
-  /*background-color: #2E2E2E;*/
 	margin-top:  30px;
-	padding-top: 110px;
+	padding-top: 100px;
+  padding-bottom: 20px;
+  min-height: 100%;
+  min-width: 100%;
 }
 
 #header h1 {
@@ -137,9 +149,10 @@ a.navbar-brand:hover {
 
 h2.subtitle {
 	color: #fff;
-	font-size: 20px;
-  margin-left: 30px;
-  margin-top: 0px;
+  font-size: 24px;
+  margin-top: 10px;
+  margin-left:20px;
+  text-align:left;
 }
 
 /* footer */
@@ -158,4 +171,12 @@ p.copyright {
 	color: #fff;
 	text-align: center;
   font-size: 12px;
-}	
+}
+
+.gobutton {
+  padding: 40px 15px;
+}
+
+#slider .slider-selection {
+  background: #7e7e7e;
+}

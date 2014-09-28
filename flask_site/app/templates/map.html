@@ -8,6 +8,9 @@
       margin: 0px;
       padding: 20px
     }
+    #map-canvas {
+      min-height:500px;
+    }
 /*    #panel {
       position: absolute;
       top: 5px;
@@ -18,10 +21,6 @@
       padding: 5px;
       border: 1px solid #999;
     }*/
-  .fill { 
-    min-height: 500px;
-    height: 100%;
-  }
 
   .thumb {
     margin: 2px 2px 2px 2px;
@@ -50,19 +49,19 @@
 </div> -->
 
 <!-- Google map canvas -->
-<div class="container fill col-md-6">
+<div class="container col-md-6">
   <div id="map-canvas"></div>
 </div>
 
 <!-- Interactive stuff for canvas -->
 <div class="container col-md-6" style="position:relative;margin-top:-10px;">
-  <div class="container col-md-12" style="height:380px;">
-    <h4> Top favorite pictures (click on map marker) <span id="show_mapmarker"></span> </h4> 
+  <div> <h4> Location <span id="show_mapmarker"></span> &nbsp; &nbsp; (click on map marker to update) </h4></div>
+  <div class="container col-md-12" style="height:360px;">
+    <h5> Top favorite pictures </h5> 
     <div id="thumbs"> </div> 
   </div>
-
-  <div class="subcontainer">
-    <h4> Nearby Places </h4> 
+  <div class="container col-md-12">
+    <h5> Nearby Places </h5> 
     <div id="loc_description"></div>
   </div>
 <!--   <div class="subcontainer">
@@ -140,7 +139,6 @@ var thumb_urls = []
 //var sanFrancisco = new google.maps.LatLng(37.774546, -122.433523);
 //var newYork = new google.maps.LatLng(40.7447888,-73.9809217);
 var myLocation = new google.maps.LatLng({{ myloc[0] }},{{ myloc[1] }});
-var plotBoxes = false
 var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png', 
 'blue_MarkerD.png', 'blue_MarkerE.png', 'blue_MarkerF.png', 'blue_MarkerG.png', 
 'blue_MarkerH.png', 'blue_MarkerI.png', 'blue_MarkerJ.png', 'blue_MarkerK.png']
@@ -196,8 +194,8 @@ locationLabels = ['A','B','C','D','E','F','G']
     .append('<tr><td align="center">' + '<img src="' + imgsource + '">' + 
       '</td><td class="col-md-2"> Arrive at ' + timeString[{{ path_time_idx[ loop.index ] }}] + 
       '</td><td align="right"> Nearby Places: </td> <td class="col-md-7">' + 
-      location_text + '</td> <td class="col-md-2"> Stay for ' + 
-    {{ '%0.1f' % (duration_at_each_location[loc[0]] / 3600) | float }} + ' hrs </td></tr>');
+      location_text + '</td> <td class="col-md-2"> Suggested stay: ~' + 
+    {{ '%0.1f' % (duration_at_each_location[loc[0]] / 3600) | float }} + ' hr </td></tr>');
 
 {% endfor %}
 
@@ -220,9 +218,7 @@ function initialize() {
   addInitialLoc()
   //addCentroidMarkers()
   //addAttractionMarkers()
-  if (plotBoxes){
-    addLocationBounds()
-  }
+  //addLocationBounds()
   addPathLocations()
   calcRoute()
   //addCentroidNearbyPlaces()
