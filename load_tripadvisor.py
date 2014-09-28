@@ -30,7 +30,6 @@ def handle_theater(attr):
 def within_nyc_bounds(lat, lng):
     return (40.50 <= lat <= 41.00) and (-74.30 <= lng <= -73.60)
 
-
     # [u'activities', u'description', u'fee', u'length', u'name', u'ranking', 
     # u'rated_by', u'rating', u'review_breakdown', u'review_total', u'street', 
     # u'type', u'url', u'useful information']
@@ -41,18 +40,30 @@ def insert_tripadvisor_sql(attr,idx,init=True):
         if init:
             cur.execute("DROP TABLE IF EXISTS tripadvisor")
             create_cmd = "CREATE TABLE tripadvisor(Id INT PRIMARY KEY, \
-                activities VARCHAR(100), fee FLOAT, length VARCHAR(25), \
+                activities VARCHAR(150), fee VARCHAR(20), length VARCHAR(25), \
                 name VARCHAR(100), ranking VARCHAR(50), rated_by VARCHAR(25), \
                 rating FLOAT, review_total VARCHAR(50), street VARCHAR(200), \
-                type VARCHAR(50), information VARCHAR(50))"
+                type VARCHAR(50), information VARCHAR(200))"
             cur.execute(create_cmd)
 
         cmd = "INSERT INTO tripadvisor (Id, activities, fee, length, name, ranking, rated_by, \
             rating, review_total, street, type, information) \
-         VALUES (%d, '%s', %s, '%s', %s, '%s', '%s', %s, '%s', '%s', '%s', '%s') " \
+         VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%s', %s, '%s', '%s', '%s', '%s') " \
          % (idx, attr['activities'], attr['fee'], attr['length'], attr['name'], attr['ranking'], attr['rated_by'],\
-            attr['rating'], attr['review_total'], attr['street'], attr['type'], attr['information'])
-        #pdb.set_trace()
+            attr['rating'], attr['review_total'], attr['street'], attr['type'], attr['useful information'])
+        cur.execute(cmd)
+
+def insert_tripadvisor_sql_short(attr,idx,init=True):
+    con = mdb.connect('localhost', 'root', '', 'insight') #host, user, password, #database
+    with con:
+        cur = con.cursor()
+        if init:
+            cur.execute("DROP TABLE IF EXISTS tripadvisor")
+            create_cmd = "CREATE TABLE tripadvisor(Id INT PRIMARY KEY, \
+                length VARCHAR(25), name VARCHAR(100), street VARCHAR(200), rating FLOAT)"
+            cur.execute(create_cmd)
+        cmd = 'INSERT INTO tripadvisor (Id, length, name, street, rating) VALUES (%d, "%s", "%s", "%s", %s)' \
+        % (idx, attr['length'], attr['name'], attr['street'], attr['rating'])
         cur.execute(cmd)
 
 def insert_map_sql(con,attr,idx,init=True):
@@ -128,7 +139,7 @@ if __name__ == '__main__':
     # [u'activities', u'description', u'fee', u'length', u'name', u'ranking', 
     # u'rated_by', u'rating', u'review_breakdown', u'review_total', u'street', 
     # u'type', u'url', u'useful information']
-    get_ascii = lambda x : x.encode('ascii', 'ignore')
+    get_ascii = lambda x : x.encode('ascii', 'ignore').lstrip('\n').replace('"', '')
     attractions = pd.DataFrame(attractions)
     columns = ['description', 'name', 'street']
     for col in columns:
@@ -146,14 +157,14 @@ if __name__ == '__main__':
     init = True
     for idx, attr in attractions.iterrows():
         print idx, '-------------------------------------------------'
-        # this doesn't work 
-        #insert_tripadvisor_sql(idx,attr,init=init)
         # figure out whether to look up by address or name
         if handle_theater(attr):
             print 'SKIPPING', attr['name'], attr['street']
             #pdb.set_trace()
             continue
         else:
+            # this is the short version. the full db doesn't quite work 
+            insert_tripadvisor_sql_short(attr, idx, init=init)
             insert_map_sql(db,attr,idx,init=init)
         init = False
 

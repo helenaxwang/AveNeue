@@ -6,7 +6,8 @@ import numpy as np
 
 # format query and look up using google geocoding API
 def get_google_address(address):
-    google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
+    #google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
+    google_api_key = 'AIzaSyDL3SBSFF2bwdvRjr6NaTW6iUH5Dwr53_g'
     address_formatted = '+'.join(address.split(' '))
     base_url = 'https://maps.googleapis.com/maps/api/geocode/json?'
     address_request = 'address=' + address_formatted
