@@ -2,6 +2,7 @@ import pymysql as mdb
 import pdb
 import numpy as np
 import math
+import pandas as pd
 
 # get the locations of tourist attractions 
 def get_tripomatic_sql(db,lat,lng,lim=0.005):
@@ -39,8 +40,19 @@ def _gauss2(X, r0=(0,0), sigma=1):
 def _dist_squared(x,y):
     return np.sum(np.square(np.array(x)-np.array(y)))
 
+# get rid of duplicate attractions (those with multiple google lookups by taking their mean coordinates)
+def remove_attraction_duplicates(attractions):
+    attractions = pd.DataFrame(attractions)
+    attractions = attractions.groupby('Name').mean()
+    attractions = attractions.reset_index()
+    return attractions.T.to_dict().values()
+
 # TODO: need to get rid of duplicate locations! take their average!!! 
-def touristy_score(location, attractions):
-    dist_weight = [ 1./(att['Id']+1) * _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
-    for att in attractions]
-    return 100*np.sum(dist_weight)
+def touristy_score(location, attractions, remove_duplicates=True):
+    if len(attractions) > 0:
+        if remove_duplicates: attractions = remove_attraction_duplicates(attractions)
+        dist_weight = [ 1./(att['Id']+1) * _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
+        for att in attractions]
+        return 100*np.sum(dist_weight)
+    else:
+        return 0
