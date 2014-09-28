@@ -7,6 +7,10 @@ import pprint
 import numpy as np
 from google_lookup import get_google_address
 
+# check whether input is within bounds 
+def within_nyc_bounds(lat, lng):
+    return (40.50 <= lat <= 41.00) and (-74.30 <= lng <= -73.60)
+
 def parse_address(ustr):
     address_str = ustr.encode('ascii','ignore')
     if address_str:
@@ -98,6 +102,12 @@ def insert_map_sql(attr,idx,init=True):
             if results:
                 for result in results:
                     loc = result['geometry']['location']
+                    
+                    # check within bounds 
+                    if not within_nyc_bounds(loc['lat'],loc['lng']):
+                        print 'out of bounds'
+                        print [name['short_name'] for name in result['address_components']]
+
                     if 'bounds' in result['geometry']:
                         bounds_ne = result['geometry']['bounds']['northeast'].values()
                         bounds_sw = result['geometry']['bounds']['southwest'].values()
