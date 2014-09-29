@@ -51,12 +51,13 @@ def get_heatmap_sql(db,init_loc,lim=0.01):
         heatmap = cur.fetchall()
     return heatmap
 
+# probably redundant with the one above but group by radius, fewer entries, and select tables 
 def get_heatmap_sql2(db,init_loc,lim=0.01, which_table='flickr_yahoo_nyc2'):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
         cmd = "SELECT lat,lng FROM %s \
-        WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
-        (which_table, init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
+        WHERE POWER(lat - (%s), 2) + POWER(lng - (%s), 2) < POWER(%s, 2)" % \
+        (which_table, init_loc[0], init_loc[1], lim)
         cur.execute(cmd)
         heatmap = cur.fetchall()
     return heatmap

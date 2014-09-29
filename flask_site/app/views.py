@@ -73,7 +73,7 @@ def map():
     print request.form
     t1 = time.time()
 
-    do_heatmap = False
+    do_heatmap = True
     heatmap_db = 'flickr_yahoo_nyc2'
     if heatmap_db == 'flickr_yahoo_nyc2':
         cluster_min_samples = 200
@@ -83,7 +83,6 @@ def map():
     do_centroid  = 2  # 0 no, 1, compute online, 2 fetch from database 
     do_timescore = 1  # 1 = yes, 0 = no, 2 = constant 
     do_attractions = False
-    location_score = 2 # 1 = touristiness, 2 = photo density 
     do_path = True
     distance_matrix_method = 2 # 1 for live query, # 2 for loading from database
     maxlocs = 10
@@ -113,9 +112,7 @@ def map():
     #------------------------------------------------------------------
     t0 = time.time()
     if do_heatmap:
-        bound_in_miles = 1.0
-        bound_in_latlng = bound_in_miles/69. #0.015
-        heatmap = get_heatmap_sql2(db,init_loc,bound_in_latlng,which_table=heatmap_db)
+        heatmap = get_heatmap_sql2(db,init_loc,maxdist,which_table=heatmap_db)
     else:
         heatmap = []
     print time.time() - t0, "seconds wall time", len(heatmap), "heatmap values"
@@ -131,33 +128,47 @@ def map():
 
     elif do_centroid == 2:
         # find all the centroids within a certain distance 
-        centroids_full = get_centroids_timescore_sql(db,init_loc,maxdist=maxdist,num=200) 
+        centroids_full = get_centroids_timescore_sql(db,init_loc,maxdist=maxdist,num=100) 
         centroids_full = pd.DataFrame(centroids_full)
-        print '%s centroids found within %s mi' %(centroids_full.shape[0], maxdist)
+        print '%s centroids found within %s mi' %(centroids_full.shape[0], maxdist*69)
         # sort by a weighted average of the two populations
         centroids_full['nycscore'] = (pop_req*centroids_full['nphotos_out'] + (1-pop_req)*centroids_full['nphotos_nyc']) / centroids_full['nphotos']
         # sort -- use mergesort for stability
         centroids_full = centroids_full.sort('nycscore',ascending=False, kind='mergesort')
         # restrict to the top maxlocs entries 
         if centroids_full.shape[0] > maxlocs:
-           centroids_full = centroids_full.head(maxlocs)
-           centroids_full = centroids_full.reset_index()
-        else:
-          maxlocs = centroids_full.shape[0]
+            centroids_full = centroids_full.head(maxlocs)       
+            #centroids_full = centroids_full.reset_index()
+
+        # # if to few locations to choose from 
+        # if centroids_full.shape[0] < 5:
+        #     print 'redoing clustering online!!'
+        #     centroids,labels = get_clusters_dbscan(heatmap,min_samples=cluster_min_samples-80)
+        #     centroids_full = pd.DataFrame(centroids,columns=['lat','lng'])
+        #     if centroids_full.shape[0] > maxlocs:
+        #         centroids_full['dist'] = (centroids_full['lat']-init_loc[0])**2 + (centroids_full['lng']-init_loc[1])**2
+        #         centroids_full = centroids_full.sort('dist',kind='mergesort')
+        #         centroids_full = centroids_full.head(maxlocs)
+        #         centroids = centroids_full[['lat','lng']].values
+        # else:
+
+        # set centroid index to index 
+        centroids_full = centroids_full.set_index(['index'])
+        centroids = centroids_full[['lat','lng']].values
         # can only visit up to the number of candidate locations available within this distance
         if nvisits > centroids_full.shape[0]:
             nvisits = centroids_full.shape[0]
             print 'warning!!! not enough candidate locations near initial location!'
-        centroids = centroids_full[['lat','lng']].values
+        
         # throw an error if we end up with less than 3 
         if nvisits < 3:
             raise InvalidUsage("Not enough locations of interest found within walking distance")
+
     else:
         centroids = []
         centroids_full = pd.DataFrame([])
     #print centroids
     print time.time() - t0, "seconds for %d centroids" % len(centroids)
-
     #----------------------------------------------------------------------------
     # get the list of attractions within the vincinity 
     # -- TODO: get all attractions at once?? get rid of redundancies??
@@ -178,23 +189,28 @@ def map():
     # TODO HERE -- different way to summarize density/interestingness??
     # time score = [nlocations x ntimepoints]
     t0 = time.time()
+    hour_keys = [str(x) for x in  np.linspace(0,24,49)]
+    hour_keys = hour_keys[:-1]
     if do_timescore == 1:
-        #hour_keys = [str(x) for x in range(24)]
-        #centroids_full['score'] = centroids_full[hour_keys].sum(axis=1)
-        hour_keys = [str(x) for x in  np.linspace(0,24,49)]
-        hour_keys = hour_keys[:-1]
         # calculate time score !!
-        time_score = centroids_full[hour_keys].values
+        #time_score = centroids_full[hour_keys].values
         # do a weighted average of the two time courses 
-        #centroids_nyc = get_centroids_timescore_sql(db,init_loc,maxlocs, name='flickr_clusters_nyc2_nycusers') 
-        #centroids_nyc = pd.DataFrame(centroids_nyc)
-        #centroids_out = get_centroids_timescore_sql(db,init_loc,maxlocs, name='flickr_clusters_nyc2_outusers') 
-        #centroids_out = pd.DataFrame(centroids_out)
-        #time_score = (pop_req * centroids_out[hour_keys].values) + ((1 - pop_req) * centroids_nyc[hour_keys].values)
+        # when the weight is 0.5, this should come out to similar to just getting get time score without dividing by user
+        centroids_nyc = get_centroids_timescore_sql(db,init_loc,maxdist=maxdist,num=100, name='flickr_clusters_nyc2_nycusers') 
+        centroids_nyc = pd.DataFrame(centroids_nyc)
+        centroids_nyc = centroids_nyc.set_index('index').ix[centroids_full.index]
+
+        centroids_out = get_centroids_timescore_sql(db,init_loc,maxdist=maxdist,num=100, name='flickr_clusters_nyc2_outusers') 
+        centroids_out = pd.DataFrame(centroids_out)
+        centroids_out = centroids_out.set_index('index').ix[centroids_full.index]
+
+        time_score = (pop_req * centroids_out[hour_keys].values) + ((1 - pop_req) * centroids_nyc[hour_keys].values)
     else:
         time_score = np.ones((len(centroids),48))
         if do_timescore == 2:
-            time_score = time_score * centroids_full['score'][:,None]
+            score = centroids_full[hour_keys].sum(axis=1)
+            time_score = time_score * score[:,None]
+
     # add a row of zeros in the beginning, corresponding to the initial starting location
     # this should not count for anything 
     time_score = np.vstack([np.zeros(48), time_score])
@@ -204,9 +220,7 @@ def map():
     #     centroid_photos_withtime = get_timemap_sql(db,cent)
     #     hour_mean = get_photo_density(centroid_photos_withtime)
     #     photo_score_withtime.append(hour_mean)
-    print time.time() - t0, "seconds for getting centroid scores"
-    #pdb.set_trace()
-
+    print time.time() - t0, "seconds for getting centroid scores with weight", pop_req
     #-------------------------------------------------------------------------------
     # calculate optimal path 
     #-------------------------------------------------------------------------------
@@ -218,13 +232,11 @@ def map():
             rows = jsonResponse['rows']
             distance_matrix,duration_matrix = get_distance_matrix(rows)
 
-        elif distance_matrix_method == 2:
+        elif distance_matrix_method == 2: # or load from precomputed values saved in db
             # get the distance from starting location to all centroids 
             distance_matrix,duration_matrix = get_google_direction_matrix_extended(centroids,origin=init_loc,pairwise=False)
-            
             # get all pairwise distance from database
-            distance_matrix0, duration_matrix0 = get_distdur_matrix_sql(db, centroids_full['index'].values)
-
+            distance_matrix0, duration_matrix0 = get_distdur_matrix_sql(db, centroids_full.index.values)
             # append it together with distance matrices for initial location 
             distance_matrix = np.vstack([distance_matrix, distance_matrix0])
             duration_matrix = np.vstack([duration_matrix, duration_matrix0])
@@ -233,7 +245,7 @@ def map():
 
         # find optimal path
         t0 = time.time()
-        duration_at_each_location = get_estimated_duration_sql(db,centroids_full['index'].values)
+        duration_at_each_location = get_estimated_duration_sql(db, centroids_full.index.values)
         duration_at_each_location = np.insert(duration_at_each_location,0,0)
         duration_at_each_location = duration_at_each_location * (2./time_req+0.5)
         print 'duration multiplier = %s' % (2./time_req+0.5)
@@ -258,8 +270,8 @@ def map():
     thumb_urls = []
     hour_idx = np.linspace(0,24,49)[:-1]
     for idx,p in enumerate(path):
-        #thumb_urls.append(get_thumb_sql(db,centroids_full['index'][p[1]], topnum=5))
-        thumb_urls.append(get_thumb_byhour_sql(db,centroids_full['index'][p[1]], \
+        #thumb_urls.append(get_thumb_sql(db,centroids_full.index[p[1]], topnum=5))
+        thumb_urls.append(get_thumb_byhour_sql(db,centroids_full.index[p[1]], \
             int(hour_idx[path_time_idx[idx]]), topnum=4))
 
     #-------------------------------------------------------------------------------
@@ -277,16 +289,15 @@ def map():
            'lat': pl['geometry']['location']['lat'], 'lng': pl['geometry']['location']['lng']})
         googlePlaces.append(places_formated)
     print time.time() - t0, 'seconds for reverse google places search'
-    #centroids_full = centroids_full.sort('score',ascending=False)
 
     # define hour scores 
-    time_score_df = centroids_full[hour_keys].T
-    #time_score_df = pd.DataFrame(time_score[1:].T)
-    #time_score_df.index = hour_keys
-
+    #time_score_df = centroids_full[hour_keys].T
+    time_score_df = pd.DataFrame(time_score[1:].T)
+    time_score_df.index = hour_keys
     print time.time() - t1, 'seconds total'
 
-    return render_template("map.html", heatmaploc=heatmap, init_loc=init_loc, init_address=init_address, \
+    user_init = {'start_time': init_time_hr, 'start_address': init_address}
+    return render_template("map.html", heatmaploc=heatmap, init_loc=init_loc, user_init=user_init, \
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, path_time_idx=path_time_idx, \
         dur_transit=dur_transit, duration_at_each_location=duration_at_each_location[1:], thumb_urls=thumb_urls, \
         time_score=time_score_df, google_places=googlePlaces)

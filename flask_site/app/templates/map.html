@@ -73,15 +73,7 @@
 <!-- Itinerary output -->
 <div class="col-md-10 col-md-offset-1 ">
   <h2> Suggested Itinerary </h2>
-  <table class="table table-striped" id="itinerary">
-    <tr>
-      <td></td> 
-      <td> Starting at </td>
-      <td> </td>
-      <td> {{ init_address }} </td>
-      <td></td>
-    </tr>
-  </table>
+  <table class="table table-striped" id="itinerary"></table>
   <div id ="travel_info" colspan=2></div>
   </br>
 </div> <!-- /<div class="col-md-10 col-md-offset-1 "> -->
@@ -147,7 +139,11 @@ var location_text = ''
                 + "{{  subloc['name'] }} &nbsp &nbsp " 
 {% endfor %}
 $("#loc_description").append(location_text)
-
+// populate starting location for itineary 
+$("#itinerary").append("<tr> <td></td> <td> Starting at </td><td>" 
+      + timeString[ {{ user_init['start_time']*2 }} ] +
+      "</td> <td> {{ user_init['start_address'] }} </td><td></tr>"
+  ) 
 
 // show iterary table 
 locationLabels = ['A','B','C','D','E','F','G']
@@ -196,7 +192,7 @@ function initialize() {
 
   addHeatMap()
   addInitialLoc()
-  //addCentroidMarkers()
+  addCentroidMarkers()
   //addAttractionMarkers()
   //addLocationBounds()
   addPathLocations()
@@ -237,16 +233,16 @@ function addCentroidMarkers(){
       },
     });
 
-    google.maps.event.addListener(marker, 'click', function(event) {
-             infoWindow.setPosition(coordinate);
-             infoWindow.setContent( String({{index}}) + '<br>' + String({{ loc['nycscore'] }}) );
-             infoWindow.open(map,this);
-    });
+    // google.maps.event.addListener(marker, 'click', function(event) {
+    //          infoWindow.setPosition(coordinate);
+    //          infoWindow.setContent( String({{index}}) + '<br>' + String({{ loc['nycscore'] }}) );
+    //          infoWindow.open(map,this);
+    // });
     // var infoWindow = new google.maps.InfoWindow( 
     //   {content: String({{index}}) + '<br>' + String({{ loc['nycscore'] }}) } 
     //   );
     //infoWindow.open(map,marker);
-    //marker.setMap(map);
+    marker.setMap(map);
   {% endfor %}
 }
 
