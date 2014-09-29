@@ -107,11 +107,11 @@ def map():
     if not within_nyc_bounds(init_loc[0],init_loc[1]):
         raise InvalidUsage("Starting location not found in New York")
 
-    try : # poor man's error handling. oh wellz
+    
+    try :
         #------------------------------------------------------------------
         # get heatmap 
         #------------------------------------------------------------------
-
         t0 = time.time()
         if do_heatmap:
             heatmap = get_heatmap_sql2(db,init_loc,maxdist,which_table=heatmap_db, maxnum=35000)
@@ -119,64 +119,73 @@ def map():
             heatmap = []
         print time.time() - t0, "seconds wall time", len(heatmap), "heatmap values"
 
-        #------------------------------------------------------------------
-        # cluster flickr photos to find centroids 
-        #------------------------------------------------------------------
-        t0 = time.time()
-        if do_centroid == 1:
-            centroids,labels = get_clusters_dbscan(heatmap,min_samples=cluster_min_samples)
-            centroids_full = pd.DataFrame(centroids,columns=['lat','lng']) 
+    except Exception as e:
+        raise InvalidUsage('Uh-oh! Something went wrong obtaining heatmap of locations')
 
-        elif do_centroid == 2:
-            # find all the centroids within a certain distance 
-            centroids_full = get_centroids_timescore_sql(db,init_loc,maxdist=maxdist,num=100) 
-            centroids_full = pd.DataFrame(centroids_full)
-            print '%s centroids found within %s mi' %(centroids_full.shape[0], maxdist*69)
-            # sort by a weighted average of the two populations
-            centroids_full['nycscore'] = (pop_req*centroids_full['nphotos_out'] + \
-                (1-pop_req)*centroids_full['nphotos_nyc']) / centroids_full['nphotos']
-            # sort -- use mergesort for stability
-            centroids_full = centroids_full.sort('nycscore',ascending=False, kind='mergesort')
-            # restrict to the top maxlocs entries 
-            if centroids_full.shape[0] > maxlocs:
-                centroids_full = centroids_full.head(maxlocs)       
-                #centroids_full = centroids_full.reset_index()
 
-            # # if to few locations to choose from 
-            # if centroids_full.shape[0] < 5:
-            #     print 'redoing clustering online!!'
-            #     centroids,labels = get_clusters_dbscan(heatmap,min_samples=cluster_min_samples-80)
-            #     centroids_full = pd.DataFrame(centroids,columns=['lat','lng'])
-            #     if centroids_full.shape[0] > maxlocs:
-            #         centroids_full['dist'] = (centroids_full['lat']-init_loc[0])**2 + (centroids_full['lng']-init_loc[1])**2
-            #         centroids_full = centroids_full.sort('dist',kind='mergesort')
-            #         centroids_full = centroids_full.head(maxlocs)
-            #         centroids = centroids_full[['lat','lng']].values
-            # else:
+    #------------------------------------------------------------------
+    # cluster flickr photos to find centroids 
+    #------------------------------------------------------------------
+    t0 = time.time()
+    if do_centroid == 1:
+        centroids,labels = get_clusters_dbscan(heatmap,min_samples=cluster_min_samples)
+        centroids_full = pd.DataFrame(centroids,columns=['lat','lng']) 
 
-            # set centroid index to index 
-            centroids_full = centroids_full.set_index(['index'])
-            centroids = centroids_full[['lat','lng']].values
-            # can only visit up to the number of candidate locations available within this distance
-            if nvisits > centroids_full.shape[0]:
-                nvisits = centroids_full.shape[0]
-                print 'warning!!! not enough candidate locations near initial location!'
-            
-            # throw an error if we end up with less than 3 
-            if nvisits < 3:
-                raise InvalidUsage("Not enough locations of interest found within walking distance")
+    elif do_centroid == 2:
+        # find all the centroids within a certain distance 
+        centroids_full = get_centroids_timescore_sql(db,init_loc,maxdist=maxdist,num=100)
+        
+        # throw an error if we end up with less than 3 
+        if len(centroids_full) < 3:
+            raise InvalidUsage("Not enough locations of interest found within walking distance")
+        print '%s centroids found within %s mi' %(len(centroids_full), maxdist*69)
 
-        else:
-            centroids = []
-            centroids_full = pd.DataFrame([])
-        #print centroids
-        print time.time() - t0, "seconds for %d centroids" % len(centroids)
+        centroids_full = pd.DataFrame(centroids_full)
+        
+        # sort by a weighted average of the two populations
+        centroids_full['nycscore'] = (pop_req*centroids_full['nphotos_out'] + \
+            (1-pop_req)*centroids_full['nphotos_nyc']) / centroids_full['nphotos']
+        
+        # sort -- use mergesort for stability
+        centroids_full = centroids_full.sort('nycscore',ascending=False, kind='mergesort')
+        # restrict to the top maxlocs entries 
+        if centroids_full.shape[0] > maxlocs:
+            centroids_full = centroids_full.head(maxlocs)       
+            #centroids_full = centroids_full.reset_index()
+
+        # # if to few locations to choose from 
+        # if centroids_full.shape[0] < 5:
+        #     print 'redoing clustering online!!'
+        #     centroids,labels = get_clusters_dbscan(heatmap,min_samples=cluster_min_samples-80)
+        #     centroids_full = pd.DataFrame(centroids,columns=['lat','lng'])
+        #     if centroids_full.shape[0] > maxlocs:
+        #         centroids_full['dist'] = (centroids_full['lat']-init_loc[0])**2 + (centroids_full['lng']-init_loc[1])**2
+        #         centroids_full = centroids_full.sort('dist',kind='mergesort')
+        #         centroids_full = centroids_full.head(maxlocs)
+        #         centroids = centroids_full[['lat','lng']].values
+        # else:
+
+        # set centroid index to index 
+        centroids_full = centroids_full.set_index(['index'])
+        centroids = centroids_full[['lat','lng']].values
+        # can only visit up to the number of candidate locations available within this distance
+        if nvisits > centroids_full.shape[0]:
+            nvisits = centroids_full.shape[0]
+            print 'warning!!! not enough candidate locations near initial location!'
+
+    else:
+        centroids = []
+        centroids_full = pd.DataFrame([])
+    #print centroids
+    print time.time() - t0, "seconds for %d centroids" % len(centroids)
+
 
         #----------------------------------------------------------------------------
         # get the list of attractions within the vincinity 
         # -- TODO: get all attractions at once?? get rid of redundancies??
         # THIS IS not longer used. consider deleting 
         #----------------------------------------------------------------------------- 
+    try :
         t0 = time.time()
         if do_attractions:
             attractions = []
@@ -186,11 +195,16 @@ def map():
             attractions = []
         print time.time() - t0, "seconds for looking up %d nearby attractions" % len(attractions)
 
+    except Exception as e:
+        raise InvalidUsage(e)
+
+
         #-------------------------------------------------------------------------------
         # get score(time) for each centroid - load from database rather than calculate online
         #-------------------------------------------------------------------------------
         # TODO HERE -- different way to summarize density/interestingness??
         # time score = [nlocations x ntimepoints]
+    try :
         t0 = time.time()
         hour_keys = [str(x) for x in  np.linspace(0,24,49)]
         hour_keys = hour_keys[:-1]
@@ -224,9 +238,15 @@ def map():
         #     hour_mean = get_photo_density(centroid_photos_withtime)
         #     photo_score_withtime.append(hour_mean)
         print time.time() - t0, "seconds for getting centroid scores with weight", pop_req
+    
+    except Exception as e:
+        raise InvalidUsage('Uh-oh! Something went wrong obtaining time scores')
+
+
         #-------------------------------------------------------------------------------
         # calculate optimal path 
         #-------------------------------------------------------------------------------
+    try :
         if do_path:
             # query google distance matrix api and build distance matrix
             t0 = time.time()
@@ -266,7 +286,11 @@ def map():
 
         dur_transit = [duration_matrix[p] for p in path]
         #print '%d path locations: ' % len(pathlocs), pathlocs
+    except Exception as e:
+        raise InvalidUsage('Uh-oh! Something went wrong calculating the path')
 
+
+    try :
         #-------------------------------------------------------------------------------
         # get the thumb nails of locations
         #-------------------------------------------------------------------------------
