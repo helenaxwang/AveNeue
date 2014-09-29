@@ -52,12 +52,13 @@ def get_heatmap_sql(db,init_loc,lim=0.01):
     return heatmap
 
 # probably redundant with the one above but group by radius, fewer entries, and select tables 
-def get_heatmap_sql2(db,init_loc,lim=0.01, which_table='flickr_yahoo_nyc2'):
+def get_heatmap_sql2(db,init_loc,lim=0.01, maxnum=20000, which_table='flickr_yahoo_nyc2'):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
         cmd = "SELECT lat,lng FROM %s \
-        WHERE POWER(lat - (%s), 2) + POWER(lng - (%s), 2) < POWER(%s, 2)" % \
-        (which_table, init_loc[0], init_loc[1], lim)
+        WHERE POWER(lat - (%s), 2) + POWER(lng - (%s), 2) < POWER(%s, 2)\
+        ORDER BY POWER(lat - (%s), 2) + POWER(lng - (%s), 2) LIMIT %d" % \
+        (which_table, init_loc[0], init_loc[1], lim, init_loc[0], init_loc[1], maxnum)
         cur.execute(cmd)
         heatmap = cur.fetchall()
     return heatmap

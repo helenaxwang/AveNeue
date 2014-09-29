@@ -114,7 +114,7 @@ def map():
 
         t0 = time.time()
         if do_heatmap:
-            heatmap = get_heatmap_sql2(db,init_loc,maxdist,which_table=heatmap_db)
+            heatmap = get_heatmap_sql2(db,init_loc,maxdist,which_table=heatmap_db, maxnum=35000)
         else:
             heatmap = []
         print time.time() - t0, "seconds wall time", len(heatmap), "heatmap values"
