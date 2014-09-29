@@ -37,7 +37,6 @@
     text-align:center
   }
   </style>
-  <link href="static/css/d3style.css" rel="stylesheet">
   <!-- Bootstrap core CSS -->
   <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
 {% endblock %}
@@ -82,7 +81,6 @@
 
 {% block scripts %}
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
-<!-- <script src="http://d3js.org/d3.v3.js"></script> -->
 
 
 <!-- Google maps script  -->
@@ -192,7 +190,7 @@ function initialize() {
 
   addHeatMap()
   addInitialLoc()
-  addCentroidMarkers()
+  //addCentroidMarkers()
   //addAttractionMarkers()
   //addLocationBounds()
   addPathLocations()
@@ -437,116 +435,6 @@ function toggleHeatmap() {
 
 google.maps.event.addDomListener(window, 'load', initialize);
 
-
-// --------- d3 scripts ------------------------
-// ---------------------------------------------
-// http://bl.ocks.org/zoopoetics/7684278
-// http://bl.ocks.org/mbostock/3902569
-// http://bl.ocks.org/benjchristensen/2579599
-// http://bl.ocks.org/mbostock/3884955
-
-// first, load data 
-// var data = []
-// {% for index, loc in time_score.iterrows() %}
-//   var new_vals = { index: {{ loop.index-1 }}, hour: {{ index }}, score: {{ loc[0]*100 }} };
-//   data.push(new_vals);
-// {% endfor %}
-//console.log(data)
-
-// Now we draw things!! 
-var margin = {top: 10, right: 100, bottom: 20, left: 50},
-    width  = 400 - margin.left - margin.right,
-    height = 180 - margin.top - margin.bottom;
-
-var x = d3.scale.linear()
-    .range([0, width]);
-
-var y = d3.scale.linear()
-    .range([height, 0]);
-
-var xAxis = d3.svg.axis()
-    .scale(x)
-    .tickValues([0, 4, 8, 12, 16, 20, 24])
-    .tickSize(-height)
-    .tickFormat("")
-    .orient("bottom");
-
-var yAxis = d3.svg.axis()
-    .scale(y)
-    .tickSize(-width)
-    .tickValues([1])
-    .tickFormat("")
-    .orient("left");
-
-function plotd3 (data) {
-
-  var svg = d3.select("#timegraph").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-  .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-
-  var line = d3.svg.line()
-    .x(function(d) { return x(d.hour); })
-    .y(function(d) { return y(d.score); });
-
-  x.domain(d3.extent(data, function(d) { return d.hour; }));
-  y.domain([0, d3.max(data, function(d) { return d.score; })]);
-
-  svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
-
-  svg.append("g")
-      .attr("class", "y axis")
-      .attr("transform", "translate(-10,0)")
-      .call(yAxis);
-
-  svg.append("path")
-      .datum(data)
-      .attr("class", "line")
-      .attr("d", line);
-
-  // append hover element 
-  var focus = svg.append("g")
-        .attr("class", "focus")
-        .style("display", "none");
-
-  focus.append("circle")
-        .attr("r", 5);
-
-  focus.append("text")
-        .attr("x", -20)
-        .attr("y", 20)
-        .attr("dy", ".35em");
-
-  svg.append("rect")
-        .attr("class", "overlay")
-        .attr("width", width)
-        .attr("height", height)
-        .on("mouseover", function() { focus.style("display", null); })
-        .on("mouseout", function() { focus.style("display", "none"); })
-        .on("mousemove", mousemove);
-
-  var bisect = d3.bisector(function(datum) {
-    return datum.hour;
-  }).left;
-
-  function mousemove() {
-    var x0 = x.invert(d3.mouse(this)[0]),
-        i = bisect(data, x0, 1),
-        d0 = data[i - 1],
-        d1 = data[i],
-        d = x0 - d0.hour > d1.hour - x0 ? d1 : d0;
-    focus.attr("transform", "translate(" + x(d.hour) + "," + y(d.score) + ")");
-    focus.select("text").text(timeString[d.index] + ": " + d.score.toFixed(1))
-    .attr("font-family", "sans-serif").attr("font-size", "14px");
-  }
-}
-
 </script>
-
-<!-- /d3 scripts  -->
 
 {% endblock %}
