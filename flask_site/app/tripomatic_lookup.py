@@ -48,11 +48,15 @@ def remove_attraction_duplicates(attractions):
     return attractions.T.to_dict().values()
 
 # TODO: need to get rid of duplicate locations! take their average!!! 
-def touristy_score(location, attractions, remove_duplicates=True):
+def touristy_score(location, attractions, remove_duplicates=True, rank_score=True):
     if len(attractions) > 0:
         if remove_duplicates: attractions = remove_attraction_duplicates(attractions)
-        dist_weight = [ 1./(att['Id']+1) * _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
-        for att in attractions]
+        if rank_score: 
+            dist_weight = [ 1./(att['Id']+1) * _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
+            for att in attractions]
+        else:
+            dist_weight = [ _gauss2( (att['loc_lat'], att['loc_lng']),  location, sigma=0.15/69) \
+            for att in attractions]
         return 100*np.sum(dist_weight)
     else:
         return 0
