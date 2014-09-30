@@ -294,12 +294,20 @@ def map():
         #-------------------------------------------------------------------------------
         # get the thumb nails of locations
         #-------------------------------------------------------------------------------
+        t0 = time.time()
         thumb_urls = []
+        #thumb_tags = []
         hour_idx = np.linspace(0,24,49)[:-1]
         for idx,p in enumerate(path):
             #thumb_urls.append(get_thumb_sql(db,centroids_full.index[p[1]], topnum=5))
-            thumb_urls.append(get_thumb_byhour_sql(db,centroids_full.index[p[1]], \
-                int(hour_idx[path_time_idx[idx]]), topnum=4))
+            thumbs = get_thumb_byhour_sql(db,centroids_full.index[p[1]], \
+                int(hour_idx[path_time_idx[idx]]), topnum=4)
+            thumb_urls.append(thumbs)
+            #tags = []
+            #for thumb in thumbs:
+            #    tags.append([tag['tag'] for tag in get_thumb_tag_sql(db, thumb['Id'])])
+            #thumb_tags.append(tags)
+        print time.time() - t0, "seconds for photo thumbnails"
 
         #-------------------------------------------------------------------------------
         # get google places for each location 
@@ -399,7 +407,8 @@ def get_thumb_sql(db,clusterId,topnum=10):
 def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT Fav, url FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
+        cmd = "SELECT Fav, url, page_url \
+              FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
               ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
               JOIN flickr_yahoo_nyc \
               ON flickr_clusters_nyc2_thumb.Id = flickr_yahoo_nyc.Id \
@@ -409,6 +418,14 @@ def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
         cur.execute(cmd)
         fav_urls = cur.fetchall()
     return fav_urls
+
+def get_thumb_tag_sql(db, photo_id):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT tag FROM flickr_yahoo_nyc_tags WHERE Id = %s" % photo_id
+        cur.execute(cmd)
+        tags = cur.fetchall()
+    return tags
 
 # load pre-saved distance/duration matrix from sql 
 def get_distdur_matrix_sql(db, clusterId):

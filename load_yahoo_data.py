@@ -62,6 +62,25 @@ def write_json(photo_list, file_name):
     with open(file_name, 'wb') as fp:
         fp.write(json.dumps(photo_list, separators=(',',':')))
 
+def insert_loc_sql_tags(con, photos, init=True, name='flickr_yahoo_nyc_tags'):
+    with con:
+        cur = con.cursor()
+        if init:
+            cur.execute("DROP TABLE IF EXISTS "+ name)
+            cur.execute("CREATE TABLE %s (Id VARCHAR(25), tag VARCHAR(150))" % name)
+        for photo in photos:
+            tags = photo['user_tags'].split(',')
+            for tag in tags:
+                if len(tag) > 150:
+                    print 'tag too long: ', tag
+                    continue
+                else:
+                    cmd = "INSERT INTO %s (Id, tag) VALUES ('%s', '%s')" % \
+                    (name, photo['id'].encode('ascii','ignore'), tag)
+                    #pdb.set_trace()
+                    cur.execute(cmd)
+
+
 def insert_loc_sql(con, photos,init=True, name = 'flickr_yahoo_nyc'):
     with con:
         cur = con.cursor()
@@ -143,7 +162,8 @@ if __name__ == '__main__':
         photo_list = photo2.T.to_dict().values()
 
         # insert into sql data base 
-        insert_loc_sql(con, photo_list,init)
+        #insert_loc_sql(con, photo_list,init)
+        insert_loc_sql_tags(con, photo_list, init)
         print 'inserted into sql', file_name
         
         init = False

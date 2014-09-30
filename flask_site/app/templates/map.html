@@ -103,10 +103,14 @@ var thumb_urls = []
 {% for urls in thumb_urls %}
   var u = []
   {% for thumb in urls %}
-    u.push("{{ thumb['url'] }}"); 
+    u.push(
+      { url : "{{ thumb['url'] }}" , 
+        page : "{{ thumb['page_url'] }}"
+      }); 
   {% endfor %}
   thumb_urls.push(u);
 {% endfor %}
+
 
 var myLocation = new google.maps.LatLng({{ init_loc[0] }},{{ init_loc[1] }});
 var routeSymbolPng = ['blue_MarkerA.png', 'blue_MarkerB.png', 'blue_MarkerC.png', 
@@ -124,8 +128,8 @@ var timeString = ['12 am', '12:30 am', '1 am', '1:30 am', '2 am', '2:30 am', '3 
 // populate initial pictures
 var curr_thumbs = thumb_urls[0]
 for (i = 0; i < curr_thumbs.length; i++){
-  var thumb_src = '<img class="thumb" src="' + curr_thumbs[i] + '">'
-  //console.log(thumb_src)
+  var thumb_src = '<a href="' + curr_thumbs[i].page + '" target="_blank">' + 
+  '<img class="thumb" src="' + curr_thumbs[i].url + '"></a>'
   $('#thumbs').append(thumb_src);
 }
 $("#show_mapmarker").append('<img width="20" src="../static/images/mapmarkers/blue_MarkerA.png">')
@@ -342,10 +346,11 @@ function addPathLocations(){
       $("#thumbs").empty();
       var curr_thumbs = thumb_urls[{{ outerloopidx }}]
       for (i = 0; i < curr_thumbs.length; i++){
-        var thumb_src = '<img class="thumb" src="' + curr_thumbs[i] + '">'
-        //console.log(thumb_src)
+        var thumb_src = '<a href="' + curr_thumbs[i].page + '" target="_blank">' + 
+           '<img class="thumb" src="' + curr_thumbs[i].url + '"></a>'
         $('#thumbs').append(thumb_src);
       }
+        
 
       // generate time graphs 
       // $("#timegraph").empty();
