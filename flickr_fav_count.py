@@ -11,14 +11,14 @@ def get_flickr_views(photo_id):
     data = flickr._doget(method, photo_id=photo_id)
     return int(data.rsp.photo.views)
 
-def insert_flickr_favorites(con, photo_id, fav_counts, init=False):
+def insert_flickr_favorites(con, photo_id, fav_counts, init=False, doReplace='INSERT'):
     with con:
         cur = con.cursor()
         if init:
             cur.execute("DROP TABLE IF EXISTS flickr_favorites")
             create_cmd = "CREATE TABLE flickr_favorites(Id VARCHAR(25) PRIMARY KEY, Fav INT)"
             cur.execute(create_cmd)        
-        cmd = "INSERT INTO flickr_favorites (Id, Fav) VALUES ('%s', %s) " % (photo_id, fav_counts)
+        cmd = "%s INTO flickr_favorites (Id, Fav) VALUES ('%s', %s) " % (doReplace, photo_id, fav_counts)
         cur.execute(cmd)
 
 def fetch_flickr_favorites(con,photo_id):
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     db = mdb.connect('localhost', 'root', '', 'insight')
     with db:
         cur = db.cursor()
-        cmd = "SELECT Id, page_url FROM flickr_yahoo_nyc WHERE date_taken >= '2011/01/01' AND \
+        cmd = "SELECT Id, page_url FROM flickr_yahoo_nyc WHERE date_taken >= '2010/01/01' AND \
         ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
         (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
         cur.execute(cmd)
@@ -53,7 +53,8 @@ if __name__ == '__main__':
 
         # if we already queried this, don't need to again 
         stored_photo = fetch_flickr_favorites(db,photo[0])
-        if stored_photo:
+
+        if stored_photo:# and stored_photo[0][1] is not None:
             continue
         
         try:

@@ -10,8 +10,6 @@ from mypath import *
 import pandas as pd
 import numpy as np
 
-db = mdb.connect('localhost', 'root', '', 'insight')
-
 # landing page 
 @app.route('/')
 @app.route('/index')
@@ -25,6 +23,7 @@ def slides():
 # test whether clustering works 
 @app.route('/testmap')
 def testmap():
+    db = mdb.connect('localhost', 'root', '', 'insight')
     do_centroid = 1;
 
     #heatmap_db = 'flickr_clusters_nyc_test'
@@ -70,6 +69,7 @@ def testmap():
 #@app.route('/map')
 def map():
     print '------------------------------------'
+    db = mdb.connect('localhost', 'root', '', 'insight')
     print request.form
     t1 = time.time()
 
@@ -335,6 +335,9 @@ def map():
         raise InvalidUsage(e)
 
     user_init = {'start_time': init_time_hr, 'start_address': init_address}
+    
+    # close connection 
+    if db: db.close()
 
     return render_template("map.html", heatmaploc=heatmap, init_loc=init_loc, user_init=user_init, \
         centroids=centroids_full, attractions=attractions, path_locations=pathlocs, path_time_idx=path_time_idx, \
@@ -389,43 +392,6 @@ def get_estimated_duration_sql(db,clusterId):
     centroids = pd.DataFrame(centroids)
     # [centroids['Dur'][centroids['ClusterId']==d].values for d in clusterId]
     return centroids['Dur'][clusterId].values
-
-
-# no longer used -- get thumbnails for a given location 
-def get_thumb_sql(db,clusterId,topnum=10):
-    with db:
-        cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT Fav, url FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
-              ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
-              WHERE (ClusterId = %s) AND (Fav > 0) ORDER BY Fav DESC LIMIT %s" % (clusterId, topnum)
-        #print cmd
-        cur.execute(cmd)
-        fav_urls = cur.fetchall()
-    return fav_urls
-
-# get thumbnail for a given location at a particular time 
-def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
-    with db:
-        cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT Fav, url, page_url \
-              FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
-              ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
-              JOIN flickr_yahoo_nyc \
-              ON flickr_clusters_nyc2_thumb.Id = flickr_yahoo_nyc.Id \
-              WHERE (ClusterId = %s) AND (Fav > 0) \
-              AND HOUR(date_taken) BETWEEN %s AND %s \
-              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour-1, hour+1, topnum)
-        cur.execute(cmd)
-        fav_urls = cur.fetchall()
-    return fav_urls
-
-def get_thumb_tag_sql(db, photo_id):
-    with db:
-        cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT tag FROM flickr_yahoo_nyc_tags WHERE Id = %s" % photo_id
-        cur.execute(cmd)
-        tags = cur.fetchall()
-    return tags
 
 # load pre-saved distance/duration matrix from sql 
 def get_distdur_matrix_sql(db, clusterId):

@@ -111,7 +111,7 @@ if __name__ == '__main__':
         print 'inserted into flickr_clusters_nyc2_thumb table!'
 
     else:
-        init = True
+        init = False
         print 'start collecting photos'
         for idx, photo in photo_df.iterrows():   
             url = "http://farm%s.static.flickr.com/%s/%s_%s_m.jpg" % (photo['farm_id'], photo['server_id'], photo['Id'], photo['secret'])

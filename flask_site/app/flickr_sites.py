@@ -64,10 +64,11 @@ def get_heatmap_sql2(db,init_loc,lim=0.01, maxnum=20000, which_table='flickr_yah
     return heatmap
 
 # query the time stamp for init_loc by looking in mysql 
+# no longer used except in testing 
 def get_timemap_sql(db,init_loc,lim=0.005):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT Id,date_taken FROM flickr_yahoo_nyc WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
+        cmd = "SELECT Id,user_id,date_taken FROM flickr_yahoo_nyc WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
         (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
         cur.execute(cmd)
         timemap = cur.fetchall()
@@ -144,21 +145,67 @@ def compute_photo_timescore(photo_df, overall_density=None,smooth=3):
     return hour_loc
 
 
+# no longer used -- get thumbnails for a given location 
+def get_thumb_sql(db,clusterId,topnum=10):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT Fav, url FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
+              ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
+              WHERE (ClusterId = %s) AND (Fav > 0) ORDER BY Fav DESC LIMIT %s" % (clusterId, topnum)
+        #print cmd
+        cur.execute(cmd)
+        fav_urls = cur.fetchall()
+    return fav_urls
+
+# get thumbnail for a given location at a particular time 
+def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT Fav, url, page_url \
+              FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
+              ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
+              JOIN flickr_yahoo_nyc \
+              ON flickr_clusters_nyc2_thumb.Id = flickr_yahoo_nyc.Id \
+              JOIN flickr_nyc_thumb \
+              ON flickr_clusters_nyc2_thumb.Id = flickr_nyc_thumb.id \
+              WHERE (ClusterId = %s) AND (Fav > 0) AND has_thumb = 1 \
+              AND HOUR(date_taken) BETWEEN %s AND %s \
+              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour-1, hour+1, topnum)
+        cur.execute(cmd)
+        fav_urls = cur.fetchall()
+    return fav_urls
+
+def get_thumb_tag_sql(db, photo_id):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT tag FROM flickr_yahoo_nyc_tags WHERE Id = %s" % photo_id
+        cur.execute(cmd)
+        tags = cur.fetchall()
+    return tags
+
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    from flickr_sites import *
     import pdb
 
     # tests photo density as a function of time 
-    init_loc = [40.74844,-73.985664]
-    db = mdb.connect('localhost', 'root', '', 'insight')
-    centroid_photos_withtime = get_timemap_sql(db,init_loc)
-    fig = plt.figure()
-    ax1 = fig.add_subplot(211)
-    hour_mean = get_photo_density(centroid_photos_withtime)
-    ax1.plot(hour_mean)
-    ax2 = fig.add_subplot(212)
-    hour_mean = get_photo_density(centroid_photos_withtime,True)
-    ax2.plot(hour_mean)
-    plt.show()
+    def test1():
+        init_loc = [40.74844,-73.985664]
+        db = mdb.connect('localhost', 'root', '', 'insight')
+        centroid_photos_withtime = get_timemap_sql(db,init_loc)
+        fig = plt.figure()
+        ax1 = fig.add_subplot(211)
+        hour_mean,df = get_photo_density(centroid_photos_withtime)
+        ax1.plot(hour_mean)
+        ax2 = fig.add_subplot(212)
+        hour_mean,df = get_photo_density(centroid_photos_withtime,drop_duplicates=True)
+        ax2.plot(hour_mean)
+        plt.show()
 
+
+    def test2():
+        db = mdb.connect('localhost', 'root', '', 'insight')
+        thumbs = get_thumb_byhour_sql(db,clusterId=0, hour= 10,topnum=4)
+        print thumbs
+
+    test2()
