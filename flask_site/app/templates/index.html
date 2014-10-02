@@ -211,14 +211,21 @@
 
 <script>
 //autocomplete for startingLocation
-var input = /** @type {HTMLInputElement} */(
-    document.getElementById('startingLocation'));
-  var autocomplete = new google.maps.places.Autocomplete(input);
-  //restrict to NYC
-  var sw = google.maps.LatLng(40.60, -74.20);
-  var ne = google.maps.LatLng(40.90, -73.70);
-  var LatLngBounds = google.maps.LatLngBounds(sw, ne);
-  autocomplete.setBounds(LatLngBounds);
+var input = document.getElementById('startingLocation');
+//var autocomplete = new google.maps.places.Autocomplete(input);
+//restrict to NYC
+var LatLngBounds = google.maps.LatLngBounds(
+  new google.maps.LatLng(40.60, -74.20),
+  new google.maps.LatLng(40.90, -73.70)
+  );
+
+var options = {
+  bounds: LatLngBounds,
+  componentRestrictions: { country: 'us' }
+};
+
+var autocomplete = new google.maps.places.Autocomplete(input,options);
+
 </script>
 
 {% endblock %}

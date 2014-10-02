@@ -120,7 +120,7 @@ def map():
         print time.time() - t0, "seconds wall time", len(heatmap), "heatmap values"
 
     except Exception as e:
-        raise InvalidUsage('Uh-oh! Something went wrong obtaining heatmap of locations')
+        raise InvalidUsage('Uh-oh! Something went wrong')
 
 
     #------------------------------------------------------------------

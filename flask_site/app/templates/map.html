@@ -132,7 +132,7 @@ for (i = 0; i < curr_thumbs.length; i++){
   '<img class="thumb" src="' + curr_thumbs[i].url + '"></a>'
   $('#thumbs').append(thumb_src);
 }
-$("#show_mapmarker").append('<img width="20" src="../static/images/mapmarkers/blue_MarkerA.png">')
+$("#show_mapmarker").append('<img width="20" src="../static/img/mapmarkers/blue_MarkerA.png">')
 // populate initial location description 
 var location_text = ''
 {% for subloc in google_places[0] %}
@@ -150,7 +150,7 @@ $("#itinerary").append("<tr> <td></td> <td> Starting at </td><td>"
 // show iterary table 
 locationLabels = ['A','B','C','D','E','F','G']
 {% for loc in path_locations %}  
-  imgsource  = '../static/images/mapmarkers/blue_Marker'.concat(locationLabels.shift()).concat('.png')
+  imgsource  = '../static/img/mapmarkers/blue_Marker'.concat(locationLabels.shift()).concat('.png')
 
   {% set places = google_places[ loop.index-1] %}
   // get the google places found for each location 
@@ -288,7 +288,7 @@ function addAttractionMarkers(){
     var marker = new google.maps.Marker({
       position: coordinate,
       map: map,
-      icon: '../static/images/mapmarkers/darkgreen_MarkerA.png',
+      icon: '../static/img/mapmarkers/darkgreen_MarkerA.png',
     });
 
     // call back for popup windows
@@ -329,7 +329,7 @@ function addPathLocations(){
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng({{ loc[1][0] }},{{ loc[1][1] }}),
       map: map,
-      icon: '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}]),
+      icon: '../static/img/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}]),
     });
     
     // save the outer loop index 
@@ -340,7 +340,7 @@ function addPathLocations(){
       // add google map marker
       $("#show_mapmarker").empty()
       $("#show_mapmarker").append('<img width="20" src="' + 
-        '../static/images/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}])
+        '../static/img/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}])
         + '">')
       // generate the top 4 flickr thumb nails 
       $("#thumbs").empty();
