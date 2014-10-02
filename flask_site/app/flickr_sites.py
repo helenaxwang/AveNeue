@@ -41,12 +41,13 @@ def get_clusters_dbscan(photos,eps=0.0005,min_samples=1000):
     return centroids,labels
 
 # query flickr photos in mysql from around init_loc to generate a heat map on google maps 
-def get_heatmap_sql(db,init_loc,lim=0.01):
+def get_heatmap_sql(db,init_loc,lim=0.01,user_name_exclude='atlanticyardswebcam04'):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
         cmd = "SELECT Id,lat,lng,user_id,date_taken FROM flickr_yahoo_nyc \
         WHERE ((lat BETWEEN %s AND %s) AND (lng BETWEEN %s AND %s))" % \
         (init_loc[0]-lim,init_loc[0]+lim,init_loc[1]-lim,init_loc[1]+lim)
+        cmd += " AND user_name != '%s'" % user_name_exclude
         cur.execute(cmd)
         heatmap = cur.fetchall()
     return heatmap

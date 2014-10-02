@@ -56,10 +56,10 @@ if __name__ == '__main__':
     newtbname = 'flickr_yahoo_nyc2'
     interval = 30  # minutes 
     do_nycusers = 0 # 0 = everyone, 1 = nycusers, 2 = nonnycusers 
-    do_clustering = False
+    do_clustering = True
     # whether to get the time course by averaging over photos confined to a radius or by their cluster Id
     cluster_by_id = False 
-    do_save_new = False
+    do_save_new = True
     do_timescore_for_centroid = True
     save_timescore_for_centroid = True
     

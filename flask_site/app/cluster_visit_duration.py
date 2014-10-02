@@ -55,11 +55,12 @@ if __name__ == '__main__':
     # import the full data set with redundancies and everything 
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT * FROM flickr_yahoo_nyc"
+        cmd = "SELECT * FROM flickr_yahoo_nyc WHERE user_name != 'atlanticyardswebcam04'"
         cur.execute(cmd)
         photos = cur.fetchall()
     # convert into a data frame 
     photos2= pd.DataFrame(photos)
+    print 'loaded ', photos2.shape[0]
     # set index to datetime
     photos2.index = pd.to_datetime(photos2['date_taken'])
     

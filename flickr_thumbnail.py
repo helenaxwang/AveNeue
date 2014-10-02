@@ -36,7 +36,7 @@ if __name__ == '__main__':
     import pdb
     cluster_by_id = False
     load_from_raw = False
-    save_by_centroid = False
+    save_by_centroid = True
 
     # load centroids
     db = mdb.connect('localhost', 'root', '', 'insight')
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     else:
         with db:
             cur = db.cursor(mdb.cursors.DictCursor)
-            cur.execute("SELECT * FROM flickr_yahoo_nyc")
+            cur.execute("SELECT * FROM flickr_yahoo_nyc WHERE user_name != 'atlanticyardswebcam04'")
             photo_list_all = cur.fetchall()
         photo_df = pd.DataFrame(photo_list_all)
 
@@ -93,7 +93,7 @@ if __name__ == '__main__':
                 smallset = pd.merge(smallset, photo_df, left_on='Id', right_on='id', how='left')
             else:
                 radius = 0.002
-                idx = (photo_df['lat']-curr_loc[0])**2 + (photo_df['lng']-curr_loc[1])**2 < radius ** 2
+                idx = (photo_df['Lat']-curr_loc[0])**2 + (photo_df['Lng']-curr_loc[1])**2 < radius ** 2
                 smallset  = photo_df.ix[idx]
 
             print cent['index'], curr_loc, smallset.shape[0]
@@ -101,10 +101,10 @@ if __name__ == '__main__':
             #t = thumb, s=small square, m = small 
             for idx, photo in smallset.iterrows():
                 #print cent['index'], curr_loc, photo['id']
-                url = "http://farm%s.static.flickr.com/%s/%s_%s_m.jpg" % (photo['farm_id'], photo['server_id'], photo['id'], photo['secret'])
+                url = "http://farm%s.static.flickr.com/%s/%s_%s_m.jpg" % (photo['farm_id'], photo['server_id'], photo['Id'], photo['secret'])
                 # checks for if url is available -- maybe really slow 
                 #if 'photo_unavailable' not in get_redirected_url(url):
-                insert_centroids_thumbnail_sql(db,cent['index'],photo_id=photo['id'],url=url,init=init)
+                insert_centroids_thumbnail_sql(db,cent['index'],photo_id=photo['Id'],url=url,init=init)
                 #else:
                 #print 'photo unavailable'
                 init = False
