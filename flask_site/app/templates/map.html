@@ -2,75 +2,60 @@
 
 {% block head %}
 <!-- https://developers.google.com/maps/documentation/javascript/heatmaplayer -->
-  <style>
-    html, body, #map-canvas {
-      height: 95%;
-      margin: 0px;
-      padding: 20px
-    }
-    #map-canvas {
-      min-height:500px;
-    }
-/*    #panel {
-      position: absolute;
-      top: 5px;
-      left: 50%;
-      margin-left: -180px;
-      z-index: 5;
-      background-color: #fff;
-      padding: 5px;
-      border: 1px solid #999;
-    }*/
+<style>
+  html, body, #map-canvas {
+    height: 95%;
+    margin: 0px;
+    padding: 20px
+  }
+  #map-canvas {
+    min-height:500px;
+  }
 
   .thumb {
-    margin: 2px 2px 2px 2px;
-    width: 220px;
-    height:150px;
+  margin: 2px 2px 2px 2px;
+  width: 220px;
+  height:150px;
   }
 
   body {
-    margin-top: 50px;
-    padding-bottom: 20px;
+  margin-top: 50px;
+  padding-bottom: 20px;
   }
 
   th {
-    text-align:center
+  text-align:center
   }
-  </style>
-  <!-- Bootstrap core CSS -->
-  <!-- <link href="../static/css/bootstrap.min.css" rel="stylesheet"> -->
+</style>
 {% endblock %}
 
 
 {% block content %}
-<!-- <div id="panel">
-  <button onclick="toggleHeatmap()">Toggle Heatmap</button>
-</div> -->
 
-<!-- Google map canvas -->
-<div class="container col-md-6">
-  <div id="map-canvas"></div>
-</div>
+<div class="container">
 
-<!-- Interactive stuff for canvas -->
-<div class="container col-md-6" style="position:relative;margin-top:-10px;">
-  <div> <h4> Location <span id="show_mapmarker"></span> &nbsp; &nbsp; (click on map marker to update) </h4></div>
-  <div class="container col-md-12" style="height:360px;">
-    <h5> Top favorite pictures </h5> 
-    <div id="thumbs"> </div> 
+  <!-- Google map canvas -->
+  <div class="container col-md-6">
+    <div id="map-canvas"></div>
   </div>
-  <div class="container col-md-12">
-    <h5> Nearby Places </h5> 
-    <div id="loc_description"></div>
+
+  <!-- Interactive stuff for canvas -->
+  <div class="container col-md-6" style="position:relative;margin-top:-10px;">
+    <div> <h4> Location <span id="show_mapmarker"></span> &nbsp; &nbsp; (click on map marker to update) </h4></div>
+    <div class="container col-md-12">
+      <h5> Top favorite pictures </h5> 
+      <div id="thumbs"> </div> 
+    </div>
+    <div class="container col-md-12">
+      <h5> Nearby Places </h5> 
+      <div id="loc_description"></div>
+    </div>
   </div>
-<!--   <div class="subcontainer">
-    <h5> Interest score over the course of the day </h5>
-    <div id="timegraph"></div>
-  </div> -->
+
 </div>
 
 <!-- Itinerary output -->
-<div class="col-md-10 col-md-offset-1 ">
+<div class="container col-md-10 col-md-offset-1 ">
   <h2> Suggested Itinerary </h2>
   <table class="table table-striped" id="itinerary"></table>
   <div id ="travel_info" colspan=2></div>
@@ -160,12 +145,10 @@ locationLabels = ['A','B','C','D','E','F','G']
                   '<img width="20" src="' + "{{  subloc['icon'] }}" + '">'
                   + "{{  subloc['name'] }} &nbsp &nbsp " 
   {% endfor %}
-  //console.log(location_text) 
 
   // add transition to row 
   $("#itinerary").append('<tr><td></td><td> Walk {{ (dur_transit[loop.index-1]/60) | int }} min </td><td> </td><td> ' 
     + '</td><td></td></tr>');
-  //console.log( timeString[ {{ path_time_idx[loop.index-1] }} ] )
 
   // add location to row 
   $("#itinerary")
@@ -350,17 +333,6 @@ function addPathLocations(){
            '<img class="thumb" src="' + curr_thumbs[i].url + '"></a>'
         $('#thumbs').append(thumb_src);
       }
-        
-
-      // generate time graphs 
-      // $("#timegraph").empty();
-      // var score_at_currloc = []
-      // {% for hridx, tsc in time_score.iterrows() %}
-      //   // index number, hour, score at that hour 
-      //   var new_vals = { index: {{ loop.index-1 }}, hour: {{ hridx }}, score: {{ tsc[loc[0]]*100 }} };
-      //   score_at_currloc.push(new_vals);
-      // {% endfor %}
-      //plotd3(score_at_currloc)
 
       // get the google places found for each location 
       {% set places = google_places[ outerloopidx ] %}
@@ -416,19 +388,14 @@ function calcRoute() {
 
 function addTravelInfo(distance_meters, time_sec){
   var div = document.getElementById("travel_info");
-  //distance = distance_feet / 5280;
   var duration_stay = 0
   {% for loc in path_locations %}
     duration_stay += {{ duration_at_each_location[loc[0]] }}
   {% endfor %}
-  //duration_stay = duration_stay / 3600; 
 
   distance = distance_meters / 1000 * 0.621371
-  // time = time_sec / 60;
   var total_time = (time_sec + duration_stay) / 3600;
 
-  // div.innerText = "Total distance: " + distance.toFixed(1) +" mi (" 
-  //   + time.toFixed(0) + " min travel, " +  duration_stay.toFixed(1) + " hr visits)";
   div.innerText = "Total distance: " + distance.toFixed(1) +" mi (" 
     + total_time.toFixed(1) + " hrs)";
 }
