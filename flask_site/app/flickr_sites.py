@@ -162,7 +162,7 @@ def get_thumb_sql(db,clusterId,topnum=10):
 def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT ClusterId, Fav, url, page_url, HOUR(date_taken) AS hour \
+        cmd = "SELECT ClusterId, Fav, url, page_url, HOUR(date_taken) AS hour, flickr_clusters_nyc2_thumb.Id AS Id \
               FROM flickr_clusters_nyc2_thumb LEFT JOIN flickr_favorites \
               ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
               LEFT JOIN flickr_yahoo_nyc \
@@ -172,6 +172,18 @@ def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
               WHERE (ClusterId = %s) AND (Fav > 0) AND has_thumb = 1 \
               AND HOUR(date_taken) IN (%s, %s, %s) \
               ORDER BY Fav DESC LIMIT %s" % (clusterId, (hour-1)%24, hour%24, (hour+1)%24, topnum)
+        cur.execute(cmd)
+        fav_urls = cur.fetchall()
+    return fav_urls
+
+# get thumbnail for a given location at a particular time -- uses the secondarily saved table
+# so it takes less time. should be the same as the one above 
+def get_thumb_byhour_sql2(db,clusterId,hour,topnum=10):
+    with db:
+        cur = db.cursor(mdb.cursors.DictCursor)
+        cmd = "SELECT Fav, url, page_url \
+              FROM flickr_clusters_nyc2_thumb2 WHERE ClusterId=%d AND hour = %d \
+              ORDER BY Fav DESC LIMIT %d" % (clusterId, hour, topnum)
         cur.execute(cmd)
         fav_urls = cur.fetchall()
     return fav_urls
@@ -211,9 +223,42 @@ if __name__ == '__main__':
     def test3():
         import pprint, time
         t0 = time.time()
-        for hour in range(24):
-            print hour
-            thumbs = get_thumb_byhour_sql(db,clusterId=2,hour=hour,topnum=10)
-            pprint.pprint(thumbs)
+        write_to_newtable = True
+        
+        # fetch the total number of clusters 
+        with db:
+            cur = db.cursor()
+            cur.execute('SELECT MAX(ClusterId) FROM flickr_clusters_nyc2_thumb')
+            maxCluster = cur.fetchall()[0][0]
+        print 'total number of clusters ', maxCluster+1
+
+        table_name = 'flickr_clusters_nyc2_thumb2' # define new table name 
+        init = True # initialize for writing to sql 
+        for clusterId in range(0,maxCluster+1): # for each cluster 
+            for hour in range(24): # for each hour 
+                # fetch thumb nails 
+                thumbs = get_thumb_byhour_sql(db,clusterId=clusterId,hour=hour,topnum=10)
+                pprint.pprint(thumbs)
+
+                # write to new table
+                if write_to_newtable: 
+                    for thumb in thumbs:
+                        with db:
+                            cur = db.cursor()
+                            if init:
+                                cur.execute("DROP TABLE IF EXISTS " + table_name)
+                                cur.execute("CREATE TABLE %s(Id VARCHAR(25), ClusterId INT, Fav INT, hour INT, \
+                                    url VARCHAR(100), page_url VARCHAR(100))" % table_name)
+                            cmd = "INSERT INTO %s (Id, ClusterId, Fav, hour, url, page_url) \
+                            VALUES ('%s', %s, %s, %s, '%s', '%s') " \
+                            % (table_name, thumb['Id'], thumb['ClusterId'], thumb['Fav'], hour, thumb['url'], thumb['page_url'])
+                            #print cmd
+                            cur.execute(cmd)
+                        init = False
+            
         print time.time()-t0
+    
+    def test3new():
+        print get_thumb_byhour_sql2(db,clusterId=1,hour=1,topnum=5)
+
     test3()

@@ -2,7 +2,7 @@ import itertools
 import numpy as np
 import pdb
 import time
-import operator
+#from repoze.lru import lru_cache
 
 
 def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, \
@@ -82,6 +82,7 @@ def find_best_path(distance_matrix,duration_matrix, nlocations, loc_duration, \
 
 #---------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------
+#@lru_cache(maxsize=500)
 def find_best_path_list(distance_matrix,duration_matrix, nlocations, loc_duration, \
     time_score, interval=30, init_time_secs=36000):
 
@@ -91,8 +92,9 @@ def find_best_path_list(distance_matrix,duration_matrix, nlocations, loc_duratio
 # time_score: n+1 x 48 matrix, score at each location at each half hour interval
 
     # number of destinations to visit
-    # rows = origins, columns = destinations  
+    # rows = origins, columns = destinations
     nplaces = distance_matrix.shape[0] # total number of possible locations 
+    #nplaces = len(distance_matrix)
     # all permutations of visiting nlocations out of nplaces [0 = origin]
     visit_paths = itertools.permutations(range(1,nplaces), nlocations)
 
@@ -117,8 +119,8 @@ def find_best_path_list(distance_matrix,duration_matrix, nlocations, loc_duratio
         
         # compute the cumulative value in time -- so we can figure out when we'll get to a place
         # account for starting time 
-        cumdur = np.cumsum([init_time_secs] + [sum(x) for x in zip(dur_stopped[:-1], dur_transit)]).tolist()
-
+        cumdur = cumsum([init_time_secs] + [sum(x) for x in itertools.izip(dur_stopped[:-1], dur_transit)])
+        
         # go to the nearest interval and wrap around 24 hours 
         time_idx = [ (int(c)/(60*interval)) % (24 * (60/interval)) for c in cumdur] 
 
@@ -192,7 +194,7 @@ def find_best_path_generator(distance_matrix,duration_matrix, nlocations, loc_du
         # compute the cumulative value in time -- so we can figure out when we'll get to a place
         # account for starting time 
         cumdur = itertools.chain( iter([init_time_secs]),  (sum(x) for x in itertools.izip(dur_stopped, dur_transit)))
-        cumdur = accumulate(cumdur)
+        cumdur = cumsum(cumdur)
         
         #cumdur = np.cumsum([init_time_secs] + [sum(x) for x in zip(dur_stopped[:-1], dur_transit)]).tolist()
 
@@ -231,17 +233,12 @@ def find_best_path_generator(distance_matrix,duration_matrix, nlocations, loc_du
     return max_path_idx, list(time_idx1)
 
 
-# https://docs.python.org/3/library/itertools.html#itertools.accumulate
-def accumulate(iterable, func=operator.add):
-    'Return running totals'
-    # accumulate([1,2,3,4,5]) --> 1 3 6 10 15
-    # accumulate([1,2,3,4,5], operator.mul) --> 1 2 6 24 120
-    it = iter(iterable)
-    total = next(it)
-    yield total
-    for element in it:
-        total = func(total, element)
+def cumsum(it):
+    total = 0
+    for x in it:
+        total += x
         yield total
+
 
 if __name__ == '__main__':
 
@@ -273,7 +270,8 @@ if __name__ == '__main__':
         t0 = time.time()
         print '------------------------------------'
         print 'implementation with list ...'
-        min_path, time_idx = find_best_path_list(distance_matrix,duration_matrix,nvisits,loc_duration,time_score)
+        min_path, time_idx = find_best_path_list(distance_matrix,duration_matrix,\
+            nvisits,loc_duration.tolist(),time_score)
         print min_path, time_idx
         print time.time() - t0, 's'
 

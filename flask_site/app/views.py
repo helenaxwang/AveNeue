@@ -273,7 +273,7 @@ def map():
             print 'duration multiplier = %s' % (2./time_req+0.5)
 
             path, path_time_idx = find_best_path_list(distance_matrix,duration_matrix,nvisits,\
-                loc_duration=duration_at_each_location,time_score=time_score,init_time_secs=init_time_hr*60*60)
+                loc_duration=duration_at_each_location.tolist(),time_score=time_score,init_time_secs=init_time_hr*60*60)
             print time.time() - t0, 'seconds. best path found: ', path, path_time_idx
             pathlocs = []
             for p in path:
@@ -299,7 +299,7 @@ def map():
         hour_idx = np.linspace(0,24,49)[:-1]
         for idx,p in enumerate(path):
             #thumb_urls.append(get_thumb_sql(db,centroids_full.index[p[1]], topnum=5))
-            thumbs = get_thumb_byhour_sql(db,centroids_full.index[p[1]], \
+            thumbs = get_thumb_byhour_sql2(db,centroids_full.index[p[1]], \
                 int(hour_idx[path_time_idx[idx]]), topnum=4)
             thumb_urls.append(thumbs)
             #tags = []
