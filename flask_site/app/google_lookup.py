@@ -13,6 +13,7 @@ def get_google_address(address):
     address_request = 'address=' + address_formatted
     api_request = '&key=' + google_api_key
     complete_url = base_url + address_request + api_request 
+    #print complete_url
 
     googleResponse = urllib.urlopen(complete_url)
     jsonResponse = json.loads(googleResponse.read())
@@ -20,8 +21,6 @@ def get_google_address(address):
         results = jsonResponse['results']
         if len(results) > 1:
             print 'Warning, more than one result returned!!!!'
-            #pdb.set_trace()
-            #pprint.pprint(results)
     else:
         print jsonResponse['status']
         results = None

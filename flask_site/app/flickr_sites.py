@@ -162,16 +162,16 @@ def get_thumb_sql(db,clusterId,topnum=10):
 def get_thumb_byhour_sql(db,clusterId,hour,topnum=10):
     with db:
         cur = db.cursor(mdb.cursors.DictCursor)
-        cmd = "SELECT Fav, url, page_url \
-              FROM flickr_clusters_nyc2_thumb JOIN flickr_favorites \
+        cmd = "SELECT ClusterId, Fav, url, page_url, HOUR(date_taken) AS hour \
+              FROM flickr_clusters_nyc2_thumb LEFT JOIN flickr_favorites \
               ON flickr_clusters_nyc2_thumb.Id = flickr_favorites.Id \
-              JOIN flickr_yahoo_nyc \
+              LEFT JOIN flickr_yahoo_nyc \
               ON flickr_clusters_nyc2_thumb.Id = flickr_yahoo_nyc.Id \
-              JOIN flickr_nyc_thumb \
+              LEFT JOIN flickr_nyc_thumb \
               ON flickr_clusters_nyc2_thumb.Id = flickr_nyc_thumb.id \
               WHERE (ClusterId = %s) AND (Fav > 0) AND has_thumb = 1 \
-              AND HOUR(date_taken) BETWEEN %s AND %s \
-              ORDER BY Fav DESC LIMIT %s" % (clusterId, hour-1, hour+1, topnum)
+              AND HOUR(date_taken) IN (%s, %s, %s) \
+              ORDER BY Fav DESC LIMIT %s" % (clusterId, (hour-1)%24, hour%24, (hour+1)%24, topnum)
         cur.execute(cmd)
         fav_urls = cur.fetchall()
     return fav_urls
@@ -188,11 +188,11 @@ def get_thumb_tag_sql(db, photo_id):
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import pdb
+    db = mdb.connect('localhost', 'root', '', 'insight')
 
     # tests photo density as a function of time 
     def test1():
         init_loc = [40.74844,-73.985664]
-        db = mdb.connect('localhost', 'root', '', 'insight')
         centroid_photos_withtime = get_timemap_sql(db,init_loc)
         fig = plt.figure()
         ax1 = fig.add_subplot(211)
@@ -205,8 +205,15 @@ if __name__ == '__main__':
 
 
     def test2():
-        db = mdb.connect('localhost', 'root', '', 'insight')
         thumbs = get_thumb_byhour_sql(db,clusterId=0, hour= 10,topnum=4)
         print thumbs
 
-    test2()
+    def test3():
+        import pprint, time
+        t0 = time.time()
+        for hour in range(24):
+            print hour
+            thumbs = get_thumb_byhour_sql(db,clusterId=2,hour=hour,topnum=10)
+            pprint.pprint(thumbs)
+        print time.time()-t0
+    test3()

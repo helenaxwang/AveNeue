@@ -1,6 +1,5 @@
 import itertools
 import numpy as np
-#import collections
 import pdb
 import time
 import operator

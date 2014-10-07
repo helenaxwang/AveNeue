@@ -34,7 +34,7 @@ def get_redirected_url(url):
 # saves thumb nail urls into a sql data base for each centroid 
 if __name__ == '__main__':
     import pdb
-    cluster_by_id = False
+    cluster_by_id = True
     load_from_raw = False
     save_by_centroid = True
 
@@ -90,7 +90,7 @@ if __name__ == '__main__':
             if cluster_by_id:
                 idx = centroids_saved['cluster_label'] == cent['index']
                 smallset = centroids_saved.ix[idx]
-                smallset = pd.merge(smallset, photo_df, left_on='Id', right_on='id', how='left')
+                smallset = pd.merge(smallset, photo_df, left_on='Id', right_on='Id', how='left')
             else:
                 radius = 0.002
                 idx = (photo_df['Lat']-curr_loc[0])**2 + (photo_df['Lng']-curr_loc[1])**2 < radius ** 2
@@ -110,6 +110,7 @@ if __name__ == '__main__':
                 init = False
         print 'inserted into flickr_clusters_nyc2_thumb table!'
 
+    # figure out whether a given photo has a thumbnail, for all photos in database
     else:
         init = False
         print 'start collecting photos'
