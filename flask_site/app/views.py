@@ -107,10 +107,10 @@ def map():
         raise InvalidUsage("Starting location not found in New York")
 
     
+    #------------------------------------------------------------------
+    # get heatmap 
+    #------------------------------------------------------------------
     try :
-        #------------------------------------------------------------------
-        # get heatmap 
-        #------------------------------------------------------------------
         t0 = time.time()
         if do_heatmap:
             heatmap = get_heatmap_sql2(db,init_loc,maxdist,which_table=heatmap_db, maxnum=40000)
@@ -179,30 +179,10 @@ def map():
     print time.time() - t0, "seconds for %d centroids" % len(centroids)
 
 
-        #----------------------------------------------------------------------------
-        # get the list of attractions within the vincinity 
-        # -- TODO: get all attractions at once?? get rid of redundancies??
-        # THIS IS not longer used. consider deleting 
-        #----------------------------------------------------------------------------- 
-    try :
-        t0 = time.time()
-        if do_attractions:
-            attractions = []
-            for cent in centroids:
-                attractions.extend(get_tripomatic_sql(db,cent[0],cent[1]))
-        else:
-            attractions = []
-        print time.time() - t0, "seconds for looking up %d nearby attractions" % len(attractions)
-
-    except Exception as e:
-        raise InvalidUsage(e)
-
-
-        #-------------------------------------------------------------------------------
-        # get score(time) for each centroid - load from database rather than calculate online
-        #-------------------------------------------------------------------------------
-        # TODO HERE -- different way to summarize density/interestingness??
-        # time score = [nlocations x ntimepoints]
+    #-------------------------------------------------------------------------------
+    # get score(time) for each centroid - load from database rather than calculate online
+    #-------------------------------------------------------------------------------
+    # time score = [nlocations x ntimepoints]
     try :
         t0 = time.time()
         hour_keys = [str(x) for x in  np.linspace(0,24,49)]
@@ -242,9 +222,9 @@ def map():
         raise InvalidUsage('Uh-oh! Something went wrong obtaining time scores')
 
 
-        #-------------------------------------------------------------------------------
-        # calculate optimal path 
-        #-------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------------
+    # calculate optimal path 
+    #-------------------------------------------------------------------------------
     try :
         if do_path:
             # query google distance matrix api and build distance matrix
@@ -339,7 +319,7 @@ def map():
     if db: db.close()
 
     return render_template("map.html", heatmaploc=heatmap, init_loc=init_loc, user_init=user_init, \
-        centroids=centroids_full, attractions=attractions, path_locations=pathlocs, path_time_idx=path_time_idx, \
+        centroids=centroids_full, path_locations=pathlocs, path_time_idx=path_time_idx, \
         dur_transit=dur_transit, duration_at_each_location=duration_at_each_location[1:], thumb_urls=thumb_urls, \
         time_score=time_score_df, google_places=googlePlaces)
 
@@ -377,6 +357,7 @@ def internal_error(error):
 
 
 #  --------------------some helper functions --------------------
+
 # check whether input is within bounds 
 def within_nyc_bounds(lat, lng):
     return (40.60 <= lat <= 40.90) and (-74.20 <= lng <= -73.70)

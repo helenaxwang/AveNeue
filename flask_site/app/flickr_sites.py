@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 import pymysql as mdb
 from datetime import datetime
-#import matplotlib.pyplot as plt
-#import json
 import pdb
 
 def get_clusters_kmeans(photos):

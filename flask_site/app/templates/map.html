@@ -178,8 +178,6 @@ function initialize() {
   addHeatMap()
   addInitialLoc()
   //addCentroidMarkers()
-  //addAttractionMarkers()
-  //addLocationBounds()
   addPathLocations()
   calcRoute()
   //addCentroidNearbyPlaces()
@@ -263,49 +261,8 @@ function addCentroidNearbyPlaces(){
   {% endfor %}
 }
 
-// set additional markers for landmarks 
-function addAttractionMarkers(){
-  {% for loc in attractions %}
-    coordinate = new google.maps.LatLng({{ loc['loc_lat'] }},{{ loc['loc_lng'] }})
-
-    var marker = new google.maps.Marker({
-      position: coordinate,
-      map: map,
-      icon: '../static/img/mapmarkers/darkgreen_MarkerA.png',
-    });
-
-    // call back for popup windows
-    google.maps.event.addListener(marker, 'click', function(event) {
-       infoWindow.setPosition(coordinate);
-       infoWindow.setContent( String({{ loc['Id'] }}) );
-       infoWindow.open(map,this);
-    });
-    //marker.setMap(map);
-    //console.log([ {{ loc['viewport_sw_lat'] }}, {{ loc['viewport_sw_lng'] }}, 
-    //  {{ loc['viewport_ne_lat'] }}, {{ loc['viewport_ne_lng'] }} ])
-  {% endfor %}
-}
-
-//add rectangle boxes
-//Not used -- good for sanity check
-function addLocationBounds(){
-  {% for loc in attractions[:1] %}
-    var rectangle = new google.maps.Rectangle({
-    strokeColor: '#FF0000',
-    strokeOpacity: 0.8,
-    strokeWeight: 2,
-    fillColor: '#FF0000',
-    fillOpacity: 0.35,
-    map: map,
-    bounds: new google.maps.LatLngBounds(
-      new google.maps.LatLng({{ loc['bounds_sw_lat'] }}, {{ loc['bounds_sw_lng'] }}),
-      new google.maps.LatLng({{ loc['bounds_ne_lat'] }}, {{ loc['bounds_ne_lng'] }}))
-    });
-  {% endfor %}
-}
 
 // locations found along the path
-// excludes initial starting location TODO: excludes first point 
 function addPathLocations(){
 
   {% for loc in path_locations %}
