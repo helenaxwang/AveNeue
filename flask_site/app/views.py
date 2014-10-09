@@ -250,7 +250,7 @@ def map():
             duration_at_each_location = get_estimated_duration_sql(db, centroids_full.index.values)
             duration_at_each_location = np.insert(duration_at_each_location,0,0)
             duration_at_each_location = duration_at_each_location * (2./time_req+0.5)
-            print 'duration multiplier = %s' % (2./time_req+0.5)
+            print 'duration multiplier = %s' % (2./time_req+0.5), time.time()-t0
 
             path, path_time_idx = find_best_path_list(distance_matrix,duration_matrix,nvisits,\
                 loc_duration=duration_at_each_location.tolist(),time_score=time_score,init_time_secs=init_time_hr*60*60)

@@ -269,7 +269,7 @@ function addPathLocations(){
     var marker = new google.maps.Marker({
       position: new google.maps.LatLng({{ loc[1][0] }},{{ loc[1][1] }}),
       map: map,
-      icon: '../static/img/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}]),
+      icon: '../static/img/mapmarkers/'.concat(routeSymbolPng[{{ loop.index-1 }}])
     });
     
     // save the outer loop index 
