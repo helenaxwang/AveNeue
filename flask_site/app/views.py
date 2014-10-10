@@ -24,12 +24,12 @@ def slides():
 @app.route('/testmap')
 def testmap():
     db = mdb.connect('localhost', 'root', '', 'insight')
-    do_centroid = 2;
+    do_centroid = 1;
 
     #heatmap_db = 'flickr_clusters_nyc_test'
     heatmap_db = 'flickr_yahoo_nyc2'
-    cluster_min_samples = 150
-    cluster_eps=0.0005
+    cluster_min_samples = 120
+    cluster_eps=0.0007
 
     #if heatmap_db == 'flickr_yahoo_nyc2':
     #    cluster_min_samples = 100
@@ -37,19 +37,26 @@ def testmap():
     #    cluster_min_samples = 500
 
     #init_loc = [40.74844,-73.985664]    # empire state building, latitude/longitude
+    #init_loc = [40.75874,-73.978674]     # rockefeller center 
     #init_loc = [40.7298482,-73.9974519] # washington square park 
     #init_loc = [40.7148731,-73.9591367] # williamsburg
-    init_loc = [40.6963532,-73.9953232] # dumbo
+    #init_loc = [40.6963532,-73.9953232] # dumbo
     #init_loc = [40.7324628,-73.9900081] # third ave
     #init_loc = [40.766117,-73.9786236]  # columbus circle 
+    #init_loc = [40.782865,-73.965355]   # central park 
+    #init_loc = [40.7060008,-74.0088189] # wall street
+    #init_loc = [40.77611,-73.943248] # gracie mansion conservatory
+    init_loc = [40.8171591,-73.9594182] # river state park 
 
-    bound_in_miles = 1.5
+    bound_in_miles = 1
     bound_in_latlng = bound_in_miles/69. #0.015
     heatmap = get_heatmap_sql2(db,init_loc,lim=bound_in_latlng,which_table=heatmap_db,maxnum=50000)
 
     t0 = time.time()
     if do_centroid == 1:
-        centroids,labels = get_clusters_dbscan(heatmap, eps=cluster_eps, min_samples=cluster_min_samples)
+        centroids,labels = get_clusters_dbscan2(heatmap, eps=cluster_eps, min_samples=cluster_min_samples)
+        #centroids,labels = get_clusters_dbscan(heatmap, eps=cluster_eps, min_samples=cluster_min_samples)
+        #centroids = get_clusters_kmeans(heatmap,nclusters=30)
         centroids_full = pd.DataFrame(centroids,columns=['lat','lng']) 
     elif do_centroid == 2:
         centroids_full = get_centroids_timescore_sql(db,init_loc,maxdist=bound_in_latlng,num=100) 
@@ -59,7 +66,6 @@ def testmap():
         centroids = []
         centroids_full = pd.DataFrame([])
     print time.time() - t0, "seconds for %d centroids" % len(centroids)
-
     # render 
     return render_template("testmap.html", heatmaploc=heatmap, myloc=init_loc,centroids=centroids_full)
 

@@ -4,16 +4,52 @@ import pymysql as mdb
 from datetime import datetime
 import pdb
 
-def get_clusters_kmeans(photos):
+
+def get_clusters_kmeans(photos, nclusters=10):
     from sklearn.cluster import KMeans
 
     photo_df = pd.DataFrame(photos)
     data = photo_df[['lat','lng']].values
-    estimator = KMeans(init='k-means++', n_clusters=10, n_init=10)
+    estimator = KMeans(init='k-means++', n_clusters=nclusters, n_init=10)
     estimator.fit(data)
     centroids = estimator.cluster_centers_
     return centroids.tolist()
 
+
+def get_clusters_dbscan2(photos,eps=0.0005,min_samples=1000):
+    from sklearn.cluster import DBSCAN
+
+    photo_df = pd.DataFrame(photos)
+    data = photo_df[['lat','lng']].values
+    estimator = DBSCAN(eps=eps, min_samples=min_samples)
+    estimator.fit(data)
+    estimator2 = DBSCAN(eps=eps-0.0002, min_samples=200)
+
+    labels = estimator.labels_
+    unique_labels = set(labels)
+    centroids = []
+    for k in unique_labels:
+        if k == -1:
+            continue
+        class_member_mask = (labels == k)
+        
+        xy = data[class_member_mask]
+
+        # refit 
+        estimator2.fit(xy)
+        unique_labels2 = set(estimator2.labels_)
+        print k, len(unique_labels2)-1, len(xy)
+        if len(unique_labels2) > 2:
+            for j in unique_labels2:
+                if j == -1: continue
+                xy2 = xy[(estimator2.labels_ == j)]
+                centroids.append(xy2.mean(axis=0))
+                print 'added subcentroids'
+        else:
+            centroids.append(xy.mean(axis=0))
+    
+    print 'Estimated number of clusters: %d' % len(centroids)
+    return centroids,labels
 
 def get_clusters_dbscan(photos,eps=0.0005,min_samples=1000):
     from sklearn.cluster import DBSCAN
@@ -31,10 +67,12 @@ def get_clusters_dbscan(photos,eps=0.0005,min_samples=1000):
     unique_labels = set(labels)
     centroids = []
     for k in unique_labels:
+        if k == -1:
+            continue
         class_member_mask = (labels == k)
         xy = data[class_member_mask & core_samples_mask]
-        if k != -1:
-            centroids.append(xy.mean(axis=0))
+        centroids.append(xy.mean(axis=0))
+
     print 'Estimated number of clusters: %d' % n_clusters_
     return centroids,labels
 
