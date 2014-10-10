@@ -25,30 +25,38 @@ def get_clusters_dbscan2(photos,eps=0.0005,min_samples=1000):
     estimator.fit(data)
     estimator2 = DBSCAN(eps=eps-0.0002, min_samples=200)
 
-    labels = estimator.labels_
-    unique_labels = set(labels)
+    unique_labels = set(estimator.labels_)
+    labels = estimator.labels_.copy()
     centroids = []
+    n = 0
     for k in unique_labels:
-        if k == -1:
-            continue
-        class_member_mask = (labels == k)
-        
+        if k == -1: continue
+        #print k, n
+
+        class_member_mask = (estimator.labels_ == k)
         xy = data[class_member_mask]
 
         # refit 
         estimator2.fit(xy)
+        labels2 = estimator2.labels_.copy()
         unique_labels2 = set(estimator2.labels_)
         print k, len(unique_labels2)-1, len(xy)
+
         if len(unique_labels2) > 2:
             for j in unique_labels2:
                 if j == -1: continue
                 xy2 = xy[(estimator2.labels_ == j)]
                 centroids.append(xy2.mean(axis=0))
                 print 'added subcentroids'
+                labels2[estimator2.labels_ == j] = n
+                n+=1
+            labels[class_member_mask] = labels2
         else:
             centroids.append(xy.mean(axis=0))
-    
-    print 'Estimated number of clusters: %d' % len(centroids)
+            labels[class_member_mask] = n
+            n+=1
+            
+    print 'Estimated number of clusters: %d' % len(centroids), max(labels)
     return centroids,labels
 
 def get_clusters_dbscan(photos,eps=0.0005,min_samples=1000):

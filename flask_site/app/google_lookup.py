@@ -80,9 +80,10 @@ def get_google_direction_matrix(locations,origin=None,mode='walking'):
 
 # format query and look up using google geocoding API when elements exceed 10 
 def get_google_direction_matrix_extended(all_locations,origin=None,pairwise=True,mode='walking'):
+    import time
 
-    #google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
-    google_api_key = 'AIzaSyDL3SBSFF2bwdvRjr6NaTW6iUH5Dwr53_g'
+    google_api_key = 'AIzaSyAfaYz3fgaT4GA2rLb_iF3nbpUoo8-e1Ss'
+    #google_api_key = 'AIzaSyDL3SBSFF2bwdvRjr6NaTW6iUH5Dwr53_g'
     base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json?'
 
     distance_matrix = np.array([])
@@ -101,7 +102,7 @@ def get_google_direction_matrix_extended(all_locations,origin=None,pairwise=True
     else:
         finish = 0
 
-    querynum = 50
+    querynum = 90
 
     # do one origin point at a time 
     for origidx in range(start, finish):
@@ -116,7 +117,8 @@ def get_google_direction_matrix_extended(all_locations,origin=None,pairwise=True
         # specify destination 10 at a time and query 
         distance_dest = np.array([])
         duration_dest = np.array([])
-
+        time.sleep(0.5)
+        
         # request each destination 
         for init_item in range( (max_items-1) / querynum + 1):
             

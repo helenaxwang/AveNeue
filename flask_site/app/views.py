@@ -39,8 +39,8 @@ def map():
     do_timescore = 1  # 1 = yes, 0 = no, 2 = constant 
     do_attractions = False
     do_path = True
-    distance_matrix_method = 2 # 1 for live query, # 2 for loading from database
-    maxlocs = 10
+    distance_matrix_method = 1 # 1 for live query, # 2 for loading from database
+    maxlocs = 9
     maxdist = 1.5 / 69. # radius for maximal walking 
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])

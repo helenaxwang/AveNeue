@@ -50,7 +50,7 @@ if __name__ == '__main__':
     if fullrun:
         lim = 0.5
     else:
-        lim = 0.01
+        lim = 0.008
 
     # test here - adjust params 
     newtbname = 'flickr_yahoo_nyc2'
@@ -62,6 +62,8 @@ if __name__ == '__main__':
     do_save_new = True
     do_timescore_for_centroid = True
     save_timescore_for_centroid = True
+    cluster_min_samples = 120
+    cluster_eps=0.0007
     
     # empire state building, latitude/longitude
     init_loc = [40.74844,-73.985664] 
@@ -106,7 +108,8 @@ if __name__ == '__main__':
         print 'running dbscan...'
         # cluster these photos into spatial clusters
         t0 = time.time()
-        centroids,labels = get_clusters_dbscan(photo_df,min_samples=200)
+        #centroids,labels = get_clusters_dbscan(photo_df,min_samples=200)
+        centroids,labels = get_clusters_dbscan2(photo_df,min_samples=cluster_min_samples, eps=cluster_eps)
         print time.time() - t0, "seconds wall time for clustering %d centroids" % len(centroids)
         # resave them into sql, with cluster labels
         photo_df['cluster_label'] = labels
