@@ -39,14 +39,14 @@ def map():
     do_timescore = 1  # 1 = yes, 0 = no, 2 = constant 
     do_attractions = False
     do_path = True
-    distance_matrix_method = 1 # 1 for live query, # 2 for loading from database
-    maxlocs = 9
+    distance_matrix_method = 2 # 1 for live query, # 2 for loading from database
+    maxlocs = 10
     maxdist = 1.5 / 69. # radius for maximal walking 
     init_time_hr = int(request.form['startingTime'])
     time_req = int(request.form['time_req'])
     pop_req = (int(request.form['pop_req']) - 1) / 4.
     # tailor number of visits per location 
-    nvisits = 3 if time_req < 3 else time_req + 1
+    nvisits = time_req + 2 if time_req < 5 else 6
     print 'visiting %d places out of %d' % (nvisits, maxlocs)
 
     # initialize starting location from get request

@@ -118,7 +118,7 @@ def get_google_direction_matrix_extended(all_locations,origin=None,pairwise=True
         distance_dest = np.array([])
         duration_dest = np.array([])
         time.sleep(0.5)
-        
+
         # request each destination 
         for init_item in range( (max_items-1) / querynum + 1):
             
@@ -179,6 +179,13 @@ def get_distance_matrix(rows):
                 dur = col['duration']
                 #dur_col_min.append(float(dur['text'].encode('ascii').rstrip(' mins')))
                 dur_col_val.append(dur['value']) # seconds 
+            else:
+                print col['status']
+                dist = 1000000000
+                dur = 1000000000
+                dist_col_val.append(dist)
+                dur_col_val.append(dur)
+
         distance_value.append(dist_col_val)
         duration_value.append(dur_col_val)
     # convert into numpy matrices
