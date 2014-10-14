@@ -223,17 +223,14 @@ def map():
     except Exception as e:
         raise InvalidUsage('Uh-oh! Something went wrong calculating the path')
 
-
     try :
         #-------------------------------------------------------------------------------
         # get the thumb nails of locations
         #-------------------------------------------------------------------------------
         t0 = time.time()
         thumb_urls = []
-        #thumb_tags = []
         hour_idx = np.linspace(0,24,49)[:-1]
         for idx,p in enumerate(path):
-            #thumb_urls.append(get_thumb_sql(db,centroids_full.index[p[1]], topnum=5))
             thumbs = get_thumb_byhour_sql2(db,centroids_full.index[p[1]], \
                 int(hour_idx[path_time_idx[idx]]), topnum=4)
             thumb_urls.append(thumbs)
@@ -251,7 +248,7 @@ def map():
         for loc in pathlocs:
             places = get_google_places(loc[1][0], loc[1][1], radius=50)
             places_formated = []
-            for pl in places[ : min(5,len(places)) ]: # save the top five
+            for pl in places[ : min(8,len(places)) ]: # save the top five
                 if 'icon' not in pl: # add custom default icon if no icon from google maps
                     pl.update({'icon': 'static/img/map-marker-19.svg'})
                 places_formated.append({'name': pl['name'], 'icon': pl['icon'], \
